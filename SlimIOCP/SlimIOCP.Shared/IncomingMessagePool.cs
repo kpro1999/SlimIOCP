@@ -5,12 +5,12 @@ using System.Text;
 
 namespace SlimIOCP
 {
-    public class IncomingMessagePool : Pool
+    internal class IncomingMessagePool
     {
         readonly BufferManager bufferManager;
         readonly Stack<IncomingMessage> pool;
 
-        public IncomingMessagePool(int preAllocateAmount)
+        internal IncomingMessagePool(int preAllocateAmount)
         {
             pool = new Stack<IncomingMessage>();
             bufferManager = new BufferManager(5, 1024, preAllocateAmount * 2);
@@ -24,34 +24,28 @@ namespace SlimIOCP
                     if (!TryPush(message))
                     {
                         //TODO: Error
+                        break;
                     }
                 }
                 else
                 {
                     //TODO: Error
+                    break;
                 }
             }
         }
 
-        public bool TryPush(IncomingMessage message)
+        internal bool TryPush(IncomingMessage message)
         {
-            message.Length = 0;
-            message.BytesRead = 0;
-            message.BytesRemaining = 0;
-            message.Header.Short = 0;
-            message.HeaderBytesReceived = 0;
-            message.IsDone = false;
-
             lock (pool)
             {
                 pool.Push(message);
             }
 
-            ++Pooled;
             return true;
         }
 
-        public bool TryPop(out IncomingMessage message)
+        internal bool TryPop(out IncomingMessage message)
         {
             lock (pool)
             {
@@ -74,8 +68,8 @@ namespace SlimIOCP
 
             if (bufferManager.TryAllocateBuffer(out bufferId, out bufferOffset, out bufferSize, out bufferHandle))
             {
-                message = new IncomingMessage(this, bufferId, bufferOffset, bufferSize, bufferHandle);
-                Allocated++;
+                message = new IncomingMessage(this);
+                message.SetBuffer(bufferHandle, bufferId, bufferOffset, bufferSize);
                 return true;
             }
             else

@@ -63,7 +63,6 @@ namespace SlimIOCP
             lock (pool)
             {
                 pool.Push(asyncArgs);
-                Pooled++;
             }
 
             return true;
@@ -71,14 +70,13 @@ namespace SlimIOCP
 
         public bool TryPop(out SocketAsyncEventArgs asyncArgs)
         {
-            if (Pooled > 0)
+            if (pool.Count > 0)
             {
                 lock (pool)
                 {
-                    if (Pooled > 0)
+                    if (pool.Count > 0)
                     {
                         asyncArgs = pool.Pop();
-                        Pooled--;
                         return true;
                     }
                 }

@@ -31,9 +31,11 @@ Suspendisse eu erat nec dui blandit placerat id eu sem. Ut porta orci vitae augu
 
         static void server_NewConnection(Connection connection)
         {
-            var message = connection.CreateMessage();
+            /*
+            var message = connection.TryCreateMessage();
             message.TryWrite(Guid.NewGuid().ToByteArray());
             message.TryQueue();
+            */
         }
     }
 }

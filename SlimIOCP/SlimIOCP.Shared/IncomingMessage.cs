@@ -5,33 +5,35 @@ using System.Text;
 
 namespace SlimIOCP
 {
-    public class IncomingMessage
+    public class IncomingMessage : Message
     {
-        public const int HeaderSize = 2;
-
         public int Length { get; internal set; }
         public int Offset { get { return BufferOffset; } }
         public byte[] Data { get { return BufferHandle; } }
         public bool IsDone { get; internal set; }
 
-        internal int BytesRead;
-        internal int BytesRemaining;
-        internal byte HeaderBytesReceived;
-        internal ShortConverter Header;
+        internal int DataBytesRead;
+        internal int DataBytesRemaining;
+        internal byte HeaderBytesRead;
 
-        internal readonly int BufferId;
-        internal readonly int BufferSize;
-        internal readonly int BufferOffset;
-        internal readonly byte[] BufferHandle;
+        internal IncomingMessageHeader Header;
         internal readonly IncomingMessagePool Pool;
 
-        internal IncomingMessage(IncomingMessagePool pool, int bufferId, int bufferOffset, int bufferSize, byte[] bufferHandle)
+        internal IncomingMessage(IncomingMessagePool pool)
         {
             Pool = pool;
-            BufferSize = bufferSize;
-            BufferHandle = bufferHandle;
-            BufferOffset = bufferOffset;
-            BufferId = bufferId;
+        }
+
+        public bool TryRecycle()
+        {
+            Length = 0;
+            IsDone = false;
+            DataBytesRead = 0;
+            DataBytesRemaining = 0;
+            HeaderBytesRead = 0;
+            Header.Size = 0;
+
+            return Pool.TryPush(this);
         }
     }
 }

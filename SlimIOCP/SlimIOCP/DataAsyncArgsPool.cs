@@ -22,7 +22,7 @@ namespace SlimIOCP
         {
             this.peer = peer;
 
-            pool = new Stack<SocketAsyncEventArgs>(preAllocateAmount);
+            pool = new Stack<SocketAsyncEventArgs>();
             bufferManager = new BufferManager(5, bufferChunkSize, chunksPerBuffer);
 
             SocketAsyncEventArgs asyncArgs;
@@ -58,7 +58,6 @@ namespace SlimIOCP
                 return false;
             }
 #endif
-
             var token = (DataToken)asyncArgs.UserToken;
 
             token.Connection = null;

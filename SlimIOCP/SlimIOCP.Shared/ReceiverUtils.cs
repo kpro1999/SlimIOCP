@@ -9,23 +9,23 @@ namespace SlimIOCP
     {
         public static IncomingMessage Receive(IncomingMessage message, byte[] buffer, ref int offset, ref int length)
         {
-            if (message.HeaderBytesReceived < IncomingMessage.HeaderSize)
+            if (message.HeaderBytesRead < IncomingMessage.HEADER_SIZE)
             {
                 if (length > 1)
                 {
-                    if (message.HeaderBytesReceived == 0)
+                    if (message.HeaderBytesRead == 0)
                     {
                         message.Header.Byte0 = buffer[offset + 0];
                         message.Header.Byte1 = buffer[offset + 1];
-                        message.HeaderBytesReceived += 2;
+                        message.HeaderBytesRead += 2;
 
                         offset += 2;
                         length -= 2;
                     }
-                    else if (message.HeaderBytesReceived == 1)
+                    else if (message.HeaderBytesRead == 1)
                     {
                         message.Header.Byte1 = buffer[offset + 0];
-                        message.HeaderBytesReceived += 1;
+                        message.HeaderBytesRead += 1;
 
                         offset += 1;
                         length -= 1;
@@ -37,11 +37,11 @@ namespace SlimIOCP
                 }
                 else if (length == 1)
                 {
-                    if (message.HeaderBytesReceived == 0)
+                    if (message.HeaderBytesRead == 0)
                     {
                         message.Header.Byte0 = buffer[offset + 0];
                     }
-                    else if (message.HeaderBytesReceived == 1)
+                    else if (message.HeaderBytesRead == 1)
                     {
                         message.Header.Byte1 = buffer[offset + 0];
                     }
@@ -50,7 +50,7 @@ namespace SlimIOCP
                         throw new Exception();
                     }
 
-                    message.HeaderBytesReceived += 1;
+                    message.HeaderBytesRead += 1;
                     offset += 1;
                     length -= 1;
                 }
@@ -59,37 +59,38 @@ namespace SlimIOCP
                     throw new Exception();
                 }
 
-                if (message.HeaderBytesReceived == 2)
+                if (message.HeaderBytesRead == 2)
                 {
-                    if (message.Header.Short > message.BufferSize)
+                    if (message.Header.Size > message.BufferSize)
                     {
-                        message = new IncomingMessage(null, 0, 0, message.Header.Short, new byte[message.Header.Short]);
-                        message.Header.Short = (ushort)message.BufferSize;
-                        message.HeaderBytesReceived = 2;
+                        message = new IncomingMessage(null);
+                        message.SetBuffer(new byte[message.Header.Size], 0, 0, message.Header.Size);
+                        message.Header.Size = (ushort)message.BufferSize;
+                        message.HeaderBytesRead = 2;
                     }
 
-                    message.Length = message.Header.Short;
-                    message.BytesRemaining = message.Header.Short;
+                    message.Length = message.Header.Size;
+                    message.DataBytesRemaining = message.Header.Size;
                 }
             }
 
             if (length > 0)
             {
-                if (length >= message.BytesRemaining)
+                if (length >= message.DataBytesRemaining)
                 {
                     System.Buffer.BlockCopy(
                         buffer,
                         offset,
                         message.BufferHandle,
-                        message.BufferOffset + message.BytesRead,
-                        message.BytesRemaining
+                        message.BufferOffset + message.DataBytesRead,
+                        message.DataBytesRemaining
                     );
 
-                    offset += message.BytesRemaining;
-                    length -= message.BytesRemaining;
+                    offset += message.DataBytesRemaining;
+                    length -= message.DataBytesRemaining;
 
-                    message.BytesRead += message.BytesRemaining;
-                    message.BytesRemaining -= message.BytesRemaining;
+                    message.DataBytesRead += message.DataBytesRemaining;
+                    message.DataBytesRemaining -= message.DataBytesRemaining;
                 }
                 else
                 {
@@ -97,18 +98,18 @@ namespace SlimIOCP
                         buffer,
                         offset,
                         message.BufferHandle,
-                        message.BufferOffset + message.BytesRead,
+                        message.BufferOffset + message.DataBytesRead,
                         length
                     );
 
-                    message.BytesRead += length;
-                    message.BytesRemaining -= length;
+                    message.DataBytesRead += length;
+                    message.DataBytesRemaining -= length;
 
                     offset += length;
                     length -= length;
                 }
 
-                message.IsDone = message.BytesRemaining == 0;
+                message.IsDone = message.DataBytesRemaining == 0;
             }
 
             return message;

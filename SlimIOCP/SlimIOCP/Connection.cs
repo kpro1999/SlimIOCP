@@ -17,8 +17,8 @@ namespace SlimIOCP
         internal IncomingMessage Message;
 
         internal readonly Peer Peer;
-        internal readonly Queue<SocketAsyncEventArgs> SendQueue;
         internal readonly Queue<IncomingMessage> ReceiveQueue;
+        internal readonly Queue<SocketAsyncEventArgs> SendQueue;
 
         internal Connection(Peer peer)
         {
@@ -32,17 +32,19 @@ namespace SlimIOCP
             ReceiveQueue.Enqueue(Message);
         }
 
-        public DataToken CreateMessage()
+        public bool TryCreateMessage(out DataToken message)
         {
             SocketAsyncEventArgs asyncArgs;
 
-            Peer.SendAsyncArgsPool.TryPop(out asyncArgs);
+            if (Peer.SendAsyncArgsPool.TryPop(out asyncArgs))
+            {
+                message = (DataToken)asyncArgs.UserToken;
+                message.Connection = this;
+                return true;
+            }
 
-            var token = (DataToken)asyncArgs.UserToken;
-
-            token.Connection = this;
-
-            return token;
+            message = null;
+            return false;
         }
     }
 }
