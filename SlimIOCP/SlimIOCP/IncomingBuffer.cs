@@ -6,7 +6,7 @@ using System.Net.Sockets;
 
 namespace SlimIOCP
 {
-    class IncomingBuffer : MessageBuffer
+    public class IncomingBuffer : MessageBuffer
     {
         internal Connection Connection;
         internal readonly SocketAsyncEventArgs AsyncArgs;

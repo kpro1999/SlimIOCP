@@ -12,6 +12,7 @@ namespace SlimIOCP
         }
 
         protected abstract T Create();
+        //protected abstract void SetPeer(object peer);
 
         public T Get()
         {
@@ -31,11 +32,11 @@ namespace SlimIOCP
 
         public void Return(T message)
         {
-            if (pool.Count < 32)
+            if (pool.Count < 64)
             {
                 lock (pool)
                 {
-                    if (pool.Count < 32)
+                    if (pool.Count < 64)
                     {
                         pool.Enqueue(message);
                     }

@@ -5,16 +5,8 @@ using System.Text;
 
 namespace SlimIOCP.Mono
 {
-    public class Peer : BasePeer
+    public class Peer : BasePeer<IncomingMessage, IncomingMessage, IncomingMessage>
     {
-        public override bool TryGetMessage(out IncomingMessage message)
-        {
-            throw new NotImplementedException();
-        }
 
-        public override bool TryRecycleMessage(IncomingMessage message)
-        {
-            throw new NotImplementedException();
-        }
     }
 }

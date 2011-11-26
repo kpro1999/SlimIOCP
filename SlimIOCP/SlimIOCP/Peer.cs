@@ -8,55 +8,15 @@ using System.Threading;
 
 namespace SlimIOCP
 {
-    public class Peer : BasePeer
+    public class Peer : BasePeer<IncomingBuffer, IncomingMessage, OutgoingMessage>
     {
-        internal Queue<IncomingBuffer> IncomingBufferQueue;
-        internal readonly QueuePool<IncomingBuffer> IncomingBufferQueuePool;
-
-        internal readonly object IncomingBufferQueueSync = new object();
-
-        internal readonly Queue<IncomingMessage> ReceivedMessages;
-
-        internal readonly MessageBufferPool<IncomingBuffer> IncomingBufferPool;
-        internal readonly MessageBufferPool<IncomingMessage> IncomingMessagePool;
-        internal readonly MessageBufferPool<OutgoingMessage> OutgoingMessagePool;
-
-        internal Peer() : base()
+        internal Peer()
+            : base()
         {
             Receiver = new Receiver(this);
-            ReceivedMessages = new Queue<IncomingMessage>();
-
             IncomingBufferPool = new MessageBufferPool<IncomingBuffer>(new IncomingBufferProducer(this));
             IncomingMessagePool = new MessageBufferPool<IncomingMessage>(new IncomingMessageProducer());
             OutgoingMessagePool = new MessageBufferPool<OutgoingMessage>(new OutgoingMessageProducer(this));
-
-            IncomingBufferQueue = new Queue<IncomingBuffer>();
-            IncomingBufferQueuePool = new QueuePool<IncomingBuffer>(32);
-        }
-
-        public override bool TryRecycleMessage(IncomingMessage message)
-        {
-            lock (IncomingMessagePool)
-            {
-                return IncomingMessagePool.TryPush(message);
-            }
-        }
-
-        public override bool TryGetMessage(out IncomingMessage message)
-        {
-            lock (ReceivedMessages)
-            {
-                if (ReceivedMessages.Count > 0)
-                {
-                    message = ReceivedMessages.Dequeue();
-                    return true;
-                }
-            }
-
-            ReceivedMessageEvent.Reset();
-
-            message = null;
-            return false;
         }
 
         internal void OnComplete(object sender, SocketAsyncEventArgs asyncArgs)
