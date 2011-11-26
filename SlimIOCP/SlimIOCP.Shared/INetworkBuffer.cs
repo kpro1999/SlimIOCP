@@ -8,5 +8,6 @@ namespace SlimIOCP
     public interface INetworkBuffer
     {
         int BytesTransferred { get; }
+        object Tag { get; }
     }
 }

@@ -16,6 +16,11 @@ namespace SlimIOCP.Win32
             get { return AsyncArgs.BytesTransferred; }
         }
 
+        public object Tag
+        {
+            get { return Connection; }
+        }
+
         internal IncomingBuffer(SocketAsyncEventArgs asyncArgs)
         {
             AsyncArgs = asyncArgs;

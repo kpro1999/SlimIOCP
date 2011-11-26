@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
+using SlimIOCP.Win32;
 
 namespace SlimIOCP.DemoServer
 {
@@ -18,17 +19,37 @@ Pellentesque venenatis magna vel lectus placerat quis interdum odio bibendum. Mo
 
 Suspendisse eu erat nec dui blandit placerat id eu sem. Ut porta orci vitae augue molestie tempor. In dapibus neque at nisi ultricies sit amet mollis magna ornare. Aenean accumsan purus quis magna dignissim sagittis. Curabitur erat sem, dapibus in mollis in, viverra id orci. Phasellus porttitor elit quis urna suscipit sit amet luctus sapien pulvinar. Sed bibendum congue est, quis tincidunt sem mattis vel. Donec pretium, ipsum ut porttitor porttitor, massa lacus mollis magna, in lacinia lacus tellus euismod justo. Vestibulum ante ipsum primis in faucibus orci luctus et ultrices posuere cubilia Curae; Pellentesque nec felis ac massa mattis fringilla. Cras imperdiet felis et nunc volutpat id lacinia enim viverra. Pellentesque lectus lorem, faucibus in hendrerit ac, pulvinar ac metus.";
 
+        static byte[] data = new byte[560];
+
         static void Main(string[] args)
         {
             var server = new SlimIOCP.Win32.Server();
-            server.Start(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 14000));
+            server.Start(new IPEndPoint(IPAddress.Parse("192.168.0.10"), 14000));
 
             IncomingMessage message;
+            OutgoingMessage outgoingMessage;
 
             while (true)
             {
                 while (server.TryGetMessage(out message))
                 {
+                    var connection = (Connection)message.Tag;
+
+                    if (!connection.TryCreateMessage(out outgoingMessage))
+                    {
+                        throw new Exception();
+                    }
+
+                    if (!outgoingMessage.TryWrite(data))
+                    {
+                        throw new Exception();
+                    }
+
+                    if (!outgoingMessage.TryQueue())
+                    {
+                        throw new Exception();
+                    }
+
                     server.TryRecycleMessage(message);
                 }
 

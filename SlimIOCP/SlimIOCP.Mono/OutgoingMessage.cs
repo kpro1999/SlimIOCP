@@ -12,6 +12,11 @@ namespace SlimIOCP.Mono
             get { throw new NotImplementedException(); }
         }
 
+        public object Tag
+        {
+            get { throw new NotImplementedException(); }
+        }
+
         public override bool TryQueue()
         {
             throw new NotImplementedException();

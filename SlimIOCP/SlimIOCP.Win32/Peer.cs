@@ -10,12 +10,17 @@ namespace SlimIOCP.Win32
 {
     public class Peer : BasePeer<IncomingBuffer, IncomingMessage, OutgoingMessage>
     {
+        internal readonly List<Connection> Connections;
+        internal readonly ConnectionPool ConnectionPool;
+
         internal Peer()
             : base()
         {
             IncomingBufferPool = new MessageBufferPool<IncomingBuffer>(new IncomingBufferProducer(this));
             IncomingMessagePool = new MessageBufferPool<IncomingMessage>(new IncomingMessageProducer());
             OutgoingMessagePool = new MessageBufferPool<OutgoingMessage>(new OutgoingMessageProducer(this));
+            Connections = new List<Connection>();
+            ConnectionPool = new ConnectionPool(this, 1024);
         }
 
         internal void OnComplete(object sender, SocketAsyncEventArgs asyncArgs)
@@ -36,7 +41,7 @@ namespace SlimIOCP.Win32
             }
         }
 
-        internal void ReceiveAsync(Connection connection)
+        internal void Receive(Connection connection)
         {
             IncomingBuffer buffer;
 
@@ -56,9 +61,13 @@ namespace SlimIOCP.Win32
             }
         }
 
-        internal void SendAsync(OutgoingMessage message)
+        internal void Send(OutgoingMessage message)
         {
-            if (!message.Connection.Sending)
+            if (message.Connection.Sending)
+            {
+                //TODO: Error
+            }
+            else
             {
                 lock (message.Connection)
                 {
@@ -69,10 +78,7 @@ namespace SlimIOCP.Win32
             // Common case
             if (message.SendDataBuffer == null)
             {
-                if (message.SendDataBytesSent != 0)
-                {
-                    message.AsyncArgs.SetBuffer(message.BufferOffset + message.SendDataBytesSent, message.BufferSize - message.SendDataBytesSent);
-                }
+                message.AsyncArgs.SetBuffer(message.BufferOffset + message.SendDataBytesSent, message.SendDataBytesRemaining);
             }
             else
             {
@@ -105,7 +111,7 @@ namespace SlimIOCP.Win32
             }
 
             ReceiverEvent.Set();
-            ReceiveAsync(connection);
+            Receive(connection);
         }
 
         void OnSendComplete(OutgoingMessage message)
@@ -120,7 +126,7 @@ namespace SlimIOCP.Win32
 
             if (message.SendDataBytesRemaining > 0)
             {
-                SendAsync(message);
+                Send(message);
             }
             else
             {
@@ -135,7 +141,7 @@ namespace SlimIOCP.Win32
                 {
                     if (connection.SendQueue.Count > 0)
                     {
-                        SendAsync(connection.SendQueue.Dequeue());
+                        Send(connection.SendQueue.Dequeue());
                     }
                     else
                     {

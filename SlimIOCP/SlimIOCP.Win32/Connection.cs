@@ -14,14 +14,12 @@ namespace SlimIOCP.Win32
         internal IncomingMessage Message;
 
         internal readonly Peer Peer;
-        internal readonly Queue<IncomingMessage> ReceiveQueue;
         internal readonly Queue<OutgoingMessage> SendQueue;
 
         internal Connection(Peer peer)
         {
             Peer = peer;
             SendQueue = new Queue<OutgoingMessage>();
-            ReceiveQueue = new Queue<IncomingMessage>();
         }
 
         public bool TryCreateMessage(out OutgoingMessage message)

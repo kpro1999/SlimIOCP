@@ -82,6 +82,16 @@
   <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SlimIOCP.Shared\SlimIOCP.Shared.csproj">
+      <Project>{A5C0A60B-D404-4D2C-9525-3299C65148F8}</Project>
+      <Name>SlimIOCP.Shared</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\SlimIOCP.Win32\SlimIOCP.Win32.csproj">
+      <Project>{7616F551-6DF3-46BC-9DCB-F2F78DC211B4}</Project>
+      <Name>SlimIOCP.Win32</Name>
+    </ProjectReference>
+  </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

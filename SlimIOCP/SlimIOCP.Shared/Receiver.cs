@@ -91,6 +91,8 @@ namespace SlimIOCP
 
                             if (message.IsDone)
                             {
+                                message.Tag = buffer.Tag;
+
                                 // Queue into received messages
                                 lock (peer.ReceivedMessages)
                                 {

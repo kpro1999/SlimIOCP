@@ -55,6 +55,7 @@
     <Compile Include="AcceptToken.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="Client.cs" />
     <Compile Include="Connection.cs">
       <SubType>Code</SubType>
     </Compile>

@@ -10,6 +10,7 @@ namespace SlimIOCP
         public int Length { get; internal set; }
         public int Offset { get { return BufferOffset; } }
         public byte[] Data { get { return BufferHandle; } }
+        public object Tag { get; internal set; }
 
         internal bool IsDone;
         internal int DataBytesRead;
@@ -31,6 +32,7 @@ namespace SlimIOCP
             DataBytesRemaining = 0;
             HeaderBytesRead = 0;
             Header.Size = 0;
+            Tag = null;
         }
 
         internal override void Destroy()

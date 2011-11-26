@@ -18,6 +18,11 @@ namespace SlimIOCP.Win32
             get { return AsyncArgs.BytesTransferred; }
         }
 
+        public object Tag
+        {
+            get { return Connection; }
+        }
+
         internal OutgoingMessage(Peer peer, SocketAsyncEventArgs asyncArgs)
         {
             Peer = peer;
@@ -61,7 +66,7 @@ namespace SlimIOCP.Win32
                 }
                 else
                 {
-                    Peer.SendAsync(this);
+                    Peer.Send(this);
                 }
             }
 

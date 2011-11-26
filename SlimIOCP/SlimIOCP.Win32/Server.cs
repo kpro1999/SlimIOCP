@@ -9,16 +9,12 @@ namespace SlimIOCP.Win32
 {
     public class Server : Peer, IServer
     {
-        readonly List<Connection> connections;
-        readonly ConnectionPool connectionPool;
         readonly AcceptAsyncArgsPool acceptAsyncArgsPool;
 
-        public int ConnectedClients { get { return connections.Count; } }
+        public int ConnectedClients { get { return Connections.Count; } }
 
         public Server()
         {
-            connections = new List<Connection>();
-            connectionPool = new ConnectionPool(this);
             acceptAsyncArgsPool = new AcceptAsyncArgsPool(this);
         }
 
@@ -60,12 +56,12 @@ namespace SlimIOCP.Win32
 
             Connection connection;
 
-            if (connectionPool.TryPop(out connection))
+            if (ConnectionPool.TryPop(out connection))
             {
-                connections.Add(connection);
+                Connections.Add(connection);
                 connection.Socket = asyncArgs.AcceptSocket;
 
-                ReceiveAsync(connection);
+                Receive(connection);
             }
             else
             {
