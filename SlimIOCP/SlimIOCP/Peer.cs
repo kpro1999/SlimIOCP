@@ -13,7 +13,6 @@ namespace SlimIOCP
         internal Peer()
             : base()
         {
-            Receiver = new Receiver(this);
             IncomingBufferPool = new MessageBufferPool<IncomingBuffer>(new IncomingBufferProducer(this));
             IncomingMessagePool = new MessageBufferPool<IncomingMessage>(new IncomingMessageProducer());
             OutgoingMessagePool = new MessageBufferPool<OutgoingMessage>(new OutgoingMessageProducer(this));

@@ -56,7 +56,6 @@
     <Compile Include="OutgoingMessageProducer.cs" />
     <Compile Include="Peer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Receiver.cs" />
     <Compile Include="Server.cs" />
   </ItemGroup>
   <ItemGroup>

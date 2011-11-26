@@ -6,10 +6,15 @@ using System.Net.Sockets;
 
 namespace SlimIOCP
 {
-    public class IncomingBuffer : MessageBuffer
+    public class IncomingBuffer : MessageBuffer, INetworkBuffer, IMessageBuffer<IncomingMessage>
     {
         internal Connection Connection;
         internal readonly SocketAsyncEventArgs AsyncArgs;
+
+        public int BytesTransferred
+        {
+            get { return AsyncArgs.BytesTransferred; }
+        }
 
         internal IncomingBuffer(SocketAsyncEventArgs asyncArgs)
         {
@@ -30,6 +35,18 @@ namespace SlimIOCP
         internal override void BufferAssigned()
         {
             AsyncArgs.SetBuffer(BufferHandle, BufferOffset, BufferSize);
+        }
+
+        public IncomingMessage CurrentMessage
+        {
+            get
+            {
+                return Connection.Message;
+            }
+            set
+            {
+                Connection.Message = value;
+            }
         }
     }
 }

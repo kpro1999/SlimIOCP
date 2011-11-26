@@ -6,12 +6,17 @@ using System.Net.Sockets;
 
 namespace SlimIOCP
 {
-    public class OutgoingMessage : BaseOutgoingMessage
+    public class OutgoingMessage : BaseOutgoingMessage, INetworkBuffer
     {
         internal Connection Connection;
 
         internal readonly Peer Peer;
         internal readonly SocketAsyncEventArgs AsyncArgs;
+
+        public int BytesTransferred
+        {
+            get { return AsyncArgs.BytesTransferred; }
+        }
 
         internal OutgoingMessage(Peer peer, SocketAsyncEventArgs asyncArgs)
         {

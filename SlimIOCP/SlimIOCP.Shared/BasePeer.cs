@@ -20,9 +20,9 @@ namespace SlimIOCP
             */
         >
 
-        where TIncomingBuffer : MessageBuffer
-        where TIncomingMessage : MessageBuffer
-        where TOutgoingMessage : MessageBuffer
+        where TIncomingBuffer : MessageBuffer, INetworkBuffer, IMessageBuffer<TIncomingMessage>
+        where TIncomingMessage : IncomingMessage
+        where TOutgoingMessage : MessageBuffer, INetworkBuffer
 
         /*
         where TIncomingBufferProducer : MessageBufferProducer<TIncomingBuffer>, new()
@@ -30,6 +30,45 @@ namespace SlimIOCP
         where TOutgoingMessageProducer : MessageBufferProducer<TOutgoingMessage>, new()
         */
     {
+        /*
+        public class Connection : BaseConnection
+        {
+            internal bool Sending;
+            internal Socket Socket;
+            internal TIncomingMessage Message;
+
+            internal readonly BasePeer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage> Peer;
+            internal readonly Queue<TIncomingMessage> ReceiveQueue;
+            internal readonly Queue<TOutgoingMessage> SendQueue;
+
+            internal Connection(BasePeer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage> peer)
+            {
+                Peer = peer;
+                SendQueue = new Queue<TOutgoingMessage>();
+                ReceiveQueue = new Queue<TIncomingMessage>();
+            }
+
+            public bool TryCreateMessage(out TOutgoingMessage message)
+            {
+                if (Peer.OutgoingMessagePool.TryPop(out message))
+                {
+                    message.Connection = this;
+                    return true;
+                }
+
+                message = null;
+                return false;
+            }
+
+            internal virtual void Reset()
+            {
+                Socket = null;
+                Sending = false;
+                Message = null;
+            }
+        }
+        */
+
         static internal int ReceiverThreadIdCounter = -1;
 
         internal MessageBufferPool<TIncomingBuffer> IncomingBufferPool;
@@ -43,7 +82,7 @@ namespace SlimIOCP
 
         internal Socket Socket;
         internal Thread ReceiverThread;
-        internal BaseReceiver Receiver;
+        internal Receiver<TIncomingBuffer, TIncomingMessage, TOutgoingMessage> Receiver;
 
         internal readonly ManualResetEvent ReceiverEvent;
 
@@ -55,6 +94,7 @@ namespace SlimIOCP
             ReceiverEvent = new ManualResetEvent(true);
             ReceivedMessageEvent = new ManualResetEvent(false);
             ReceivedMessages = new Queue<TIncomingMessage>();
+            Receiver = new Receiver<TIncomingBuffer, TIncomingMessage, TOutgoingMessage>(this);
 
             IncomingBufferQueue = new Queue<TIncomingBuffer>();
             IncomingBufferQueuePool = new QueuePool<TIncomingBuffer>(32);

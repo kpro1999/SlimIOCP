@@ -16,9 +16,41 @@ namespace SlimIOCP
             this.peer = peer;
         }
 
-        internal override void ReceiveLoop()
+    }*/
+
+    internal class Receiver<
+            TIncomingBuffer, 
+            TIncomingMessage, 
+            TOutgoingMessage
+        >
+
+        where TIncomingBuffer : MessageBuffer, INetworkBuffer, IMessageBuffer<TIncomingMessage>
+        where TIncomingMessage : IncomingMessage
+        where TOutgoingMessage : MessageBuffer, INetworkBuffer
+
+    {
+#if DEBUG
+        bool first = true;
+        long messagesProcessed;
+        DateTime timeStart = DateTime.Now;
+        DateTime lastDisplayTime = DateTime.Now;
+#endif
+        readonly BasePeer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage> peer;
+
+        internal Receiver(BasePeer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage> basePeer)
         {
-            Queue<IncomingBuffer> queue = null;
+            peer = basePeer;
+        }
+
+        internal void Start(object threadState)
+        {
+            Console.WriteLine("Receiver thread started");
+            ReceiveLoop();
+        }
+
+        internal void ReceiveLoop()
+        {
+            Queue<TIncomingBuffer> queue = null;
 
             while (true)
             {
@@ -42,40 +74,38 @@ namespace SlimIOCP
                         var buffer = queue.Dequeue();
                         var bufferHandle = buffer.BufferHandle;
                         var bufferOffset = buffer.BufferOffset;
-                        var bufferLength = buffer.AsyncArgs.BytesTransferred;
-
-                        var connection = buffer.Connection;
+                        var bufferLength = buffer.BytesTransferred;
+                        var message = buffer.CurrentMessage;
 
                         while (bufferLength > 0)
                         {
-                            if (connection.Message == null)
+                            if (message == null)
                             {
-                                if (!peer.IncomingMessagePool.TryPop(out connection.Message))
+                                if (!peer.IncomingMessagePool.TryPop(out message))
                                 {
                                     //TODO: Error
                                 }
                             }
 
-                            connection.Message = Receive(connection.Message, bufferHandle, ref bufferOffset, ref bufferLength);
+                            message = Receive(message, bufferHandle, ref bufferOffset, ref bufferLength);
 
-                            if (connection.Message.IsDone)
+                            if (message.IsDone)
                             {
-                                //lock (connection.ReceiveQueue)
-                                //{
-                                    //connection.ReceiveQueue.Enqueue(connection.Message);
-                                //}
-
                                 // Queue into received messages
                                 lock (peer.ReceivedMessages)
                                 {
-                                    peer.ReceivedMessages.Enqueue(connection.Message);
+                                    peer.ReceivedMessages.Enqueue(message);
                                 }
 
                                 // Signal wait event
                                 peer.ReceivedMessageEvent.Set();
 
                                 // Clear message on connection
-                                connection.Message = null;
+                                buffer.CurrentMessage = null;
+                            }
+                            else
+                            {
+                                buffer.CurrentMessage = message;
                             }
                         }
 
@@ -99,26 +129,17 @@ namespace SlimIOCP
                 }
             }
         }
-    }*/
 
-    internal abstract class BaseReceiver
-    {
-#if DEBUG
-        long messagesProcessed;
-        DateTime timeStart = DateTime.Now;
-        DateTime lastDisplayTime = DateTime.Now;
-#endif
-        internal abstract void ReceiveLoop();
-
-        internal void Start(object threadState)
-        {
-            Console.WriteLine("Receiver thread started");
-            ReceiveLoop();
-        }
-
-        internal IncomingMessage Receive(IncomingMessage message, byte[] buffer, ref int offset, ref int length)
+        internal TIncomingMessage Receive(TIncomingMessage message, byte[] buffer, ref int offset, ref int length)
         {
 #if DEBUG
+            if (first)
+            {
+                timeStart = DateTime.Now;
+                lastDisplayTime = timeStart;
+                first = false;
+            }
+
             if ((DateTime.Now - lastDisplayTime).TotalMilliseconds > 1000)
             {
                 lastDisplayTime = DateTime.Now;
@@ -185,10 +206,14 @@ namespace SlimIOCP
                 {
                     if (message.Header.Size > message.BufferSize)
                     {
+                        throw new NotImplementedException();
+
+                        /*
                         message = new IncomingMessage();
                         message.SetBuffer(null, new byte[message.Header.Size], 0, 0, message.Header.Size);
                         message.Header.Size = (ushort)message.BufferSize;
                         message.HeaderBytesRead = 2;
+                        */
                     }
 
                     message.Length = message.Header.Size;
