@@ -5,17 +5,22 @@ using System.Text;
 
 namespace SlimIOCP
 {
-    public class MessageBuffer
+    public abstract class MessageBuffer2
     {
-        public const int HEADER_SIZE = 2;
-
         internal int BufferId;
         internal int BufferSize;
         internal int BufferOffset;
         internal byte[] BufferHandle;
+        internal BufferManager BufferManager;
 
-        internal void SetBuffer(byte[] bufferHandle, int bufferId, int bufferOffset, int bufferSize)
+        internal void SetBuffer(BufferManager bufferManager, byte[] bufferHandle, int bufferId, int bufferOffset, int bufferSize)
         {
+#if DEBUG
+            if (bufferManager == null)
+            {
+                throw new ArgumentNullException("bufferManager");
+            }
+#endif
 #if DEBUG
             if (bufferHandle == null)
             {
@@ -26,6 +31,7 @@ namespace SlimIOCP
             BufferSize = bufferSize;
             BufferOffset = bufferOffset;
             BufferHandle = bufferHandle;
+            BufferManager = bufferManager;
         }
 
         internal void ClearBuffer()
@@ -34,6 +40,11 @@ namespace SlimIOCP
             BufferSize = 0;
             BufferOffset = 0;
             BufferHandle = null;
+            BufferManager = null;
         }
+
+        internal abstract void Reset();
+        internal abstract void Destroy();
+        internal abstract void BufferAssigned();
     }
 }
