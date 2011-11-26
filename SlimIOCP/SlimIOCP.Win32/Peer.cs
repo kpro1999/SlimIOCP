@@ -6,7 +6,7 @@ using System.Net.Sockets;
 using System.Net;
 using System.Threading;
 
-namespace SlimIOCP
+namespace SlimIOCP.Win32
 {
     public class Peer : BasePeer<IncomingBuffer, IncomingMessage, OutgoingMessage>
     {

@@ -1,5 +1,5 @@
-SlimIOCP/SlimIOCP/bin
-SlimIOCP/SlimIOCP/obj
+SlimIOCP/SlimIOCP.Win32/bin
+SlimIOCP/SlimIOCP.Win32/obj
 SlimIOCP/SlimIOCP.DemoClient/bin
 SlimIOCP/SlimIOCP.DemoClient/obj
 SlimIOCP/SlimIOCP.DemoServer/bin

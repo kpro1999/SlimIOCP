@@ -5,7 +5,7 @@ using System.Text;
 using System.Net;
 using System.Net.Sockets;
 
-namespace SlimIOCP
+namespace SlimIOCP.Win32
 {
     public class Server : Peer, IServer
     {

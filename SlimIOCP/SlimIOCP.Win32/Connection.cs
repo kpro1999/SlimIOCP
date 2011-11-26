@@ -5,7 +5,7 @@ using System.Text;
 using System.Net.Sockets;
 using System.Threading;
 
-namespace SlimIOCP
+namespace SlimIOCP.Win32
 {
     public class Connection
     {

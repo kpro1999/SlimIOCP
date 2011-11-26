@@ -100,7 +100,7 @@ namespace SlimIOCP
                                 // Signal wait event
                                 peer.ReceivedMessageEvent.Set();
 
-                                // Clear message on connection
+                                // Clear message on the buffer
                                 buffer.CurrentMessage = null;
                             }
                             else

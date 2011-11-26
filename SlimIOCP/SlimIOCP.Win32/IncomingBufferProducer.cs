@@ -4,21 +4,21 @@ using System.Linq;
 using System.Text;
 using System.Net.Sockets;
 
-namespace SlimIOCP
+namespace SlimIOCP.Win32
 {
-    internal class OutgoingMessageProducer : MessageBufferProducer<OutgoingMessage>
+    internal class IncomingBufferProducer : MessageBufferProducer<IncomingBuffer>
     {
         readonly Peer peer;
 
-        public OutgoingMessageProducer(Peer peer)
+        public IncomingBufferProducer(Peer peer)
         {
             this.peer = peer;
         }
 
-        protected override OutgoingMessage Create()
+        protected override IncomingBuffer Create()
         {
             var asyncArgs = new SocketAsyncEventArgs();
-            var buffer = new OutgoingMessage(peer, asyncArgs);
+            var buffer = new IncomingBuffer(asyncArgs);
 
             asyncArgs.UserToken = buffer;
             asyncArgs.Completed += new EventHandler<SocketAsyncEventArgs>(peer.OnComplete);

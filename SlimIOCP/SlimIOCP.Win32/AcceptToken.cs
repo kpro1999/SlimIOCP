@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Net.Sockets;
 
-namespace SlimIOCP
+namespace SlimIOCP.Win32
 {
     internal class AcceptToken
     {

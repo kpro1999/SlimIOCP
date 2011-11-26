@@ -20,7 +20,7 @@ Suspendisse eu erat nec dui blandit placerat id eu sem. Ut porta orci vitae augu
 
         static void Main(string[] args)
         {
-            var server = new Server();
+            var server = new SlimIOCP.Win32.Server();
             server.Start(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 14000));
 
             IncomingMessage message;

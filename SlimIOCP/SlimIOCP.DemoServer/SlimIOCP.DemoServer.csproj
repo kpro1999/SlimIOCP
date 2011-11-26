@@ -83,9 +83,9 @@
       <Project>{A5C0A60B-D404-4D2C-9525-3299C65148F8}</Project>
       <Name>SlimIOCP.Shared</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SlimIOCP\SlimIOCP.csproj">
-      <Project>{5781BB87-9F23-43B4-8A93-AB2670B7CE71}</Project>
-      <Name>SlimIOCP</Name>
+    <ProjectReference Include="..\SlimIOCP.Win32\SlimIOCP.Win32.csproj">
+      <Project>{7616F551-6DF3-46BC-9DCB-F2F78DC211B4}</Project>
+      <Name>SlimIOCP.Win32</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>

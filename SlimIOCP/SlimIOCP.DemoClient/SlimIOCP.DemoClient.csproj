@@ -80,12 +80,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SlimIOCP\SlimIOCP.csproj">
-      <Project>{5781BB87-9F23-43B4-8A93-AB2670B7CE71}</Project>
-      <Name>SlimIOCP</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
     <None Include="app.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
