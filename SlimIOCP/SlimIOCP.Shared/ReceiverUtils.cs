@@ -2,13 +2,30 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace SlimIOCP
 {
-    public class ReceiverUtils
+    internal static class Receiver
     {
-        public static IncomingMessage Receive(IncomingMessage message, byte[] buffer, ref int offset, ref int length)
+        static long messagesProcessed;
+        static DateTime timeStart = DateTime.Now;
+        static DateTime lastDisplayTime = DateTime.Now;
+
+        internal static IncomingMessage Receive(IncomingMessage message, byte[] buffer, ref int offset, ref int length)
         {
+            /*
+            if ((DateTime.Now - lastDisplayTime).TotalMilliseconds > 1000)
+            {
+                lastDisplayTime = DateTime.Now;
+                var timeRunning = lastDisplayTime - timeStart;
+
+                Console.WriteLine("Message/Sec: " + messagesProcessed / (timeRunning.TotalMilliseconds / 1000));
+            }
+            */
+
+            Interlocked.Increment(ref messagesProcessed);
+
             if (message.HeaderBytesRead < IncomingMessage.HEADER_SIZE)
             {
                 if (length > 1)
@@ -63,8 +80,8 @@ namespace SlimIOCP
                 {
                     if (message.Header.Size > message.BufferSize)
                     {
-                        message = new IncomingMessage(null);
-                        message.SetBuffer(new byte[message.Header.Size], 0, 0, message.Header.Size);
+                        message = new IncomingMessage();
+                        message.SetBuffer(null, new byte[message.Header.Size], 0, 0, message.Header.Size);
                         message.Header.Size = (ushort)message.BufferSize;
                         message.HeaderBytesRead = 2;
                     }

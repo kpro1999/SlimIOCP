@@ -7,11 +7,11 @@ using System.Threading;
 
 namespace SlimIOCP
 {
-    internal class Receiver
+    internal class ReceiverThread
     {
         readonly Peer peer;
 
-        internal Receiver(Peer peer)
+        internal ReceiverThread(Peer peer)
         {
             this.peer = peer;
         }
@@ -24,7 +24,7 @@ namespace SlimIOCP
 
         void Receive()
         {
-            Queue<IncomingBuffer2> queue = null;
+            Queue<IncomingBuffer> queue = null;
 
             while (true)
             {
@@ -62,14 +62,16 @@ namespace SlimIOCP
                                 }
                             }
 
-                            connection.Message = ReceiverUtils.Receive(connection.Message, bufferHandle, ref bufferOffset, ref bufferLength);
+                            connection.Message = Receiver.Receive(connection.Message, bufferHandle, ref bufferOffset, ref bufferLength);
 
                             if (connection.Message.IsDone)
                             {
                                 lock (connection.ReceiveQueue)
                                 {
-                                    connection.ReceiveQueue.Enqueue(connection.Message);
+                                    //connection.ReceiveQueue.Enqueue(connection.Message);
                                 }
+
+                                peer.IncomingMessagePool.TryPush(connection.Message);
 
                                 connection.Message = null;
                             }

@@ -6,19 +6,19 @@ using System.Net.Sockets;
 
 namespace SlimIOCP
 {
-    internal class OutgoingMessage2Producer : MessageBufferProducer<OutgoingMessage2>
+    internal class IncomingBufferProducer : MessageBufferProducer<IncomingBuffer>
     {
         readonly Peer peer;
 
-        public OutgoingMessage2Producer(Peer peer)
+        public IncomingBufferProducer(Peer peer)
         {
             this.peer = peer;
         }
 
-        protected override OutgoingMessage2 Create()
+        protected override IncomingBuffer Create()
         {
             var asyncArgs = new SocketAsyncEventArgs();
-            var buffer = new OutgoingMessage2(peer, asyncArgs);
+            var buffer = new IncomingBuffer(peer, asyncArgs);
 
             asyncArgs.UserToken = buffer;
             asyncArgs.Completed += new EventHandler<SocketAsyncEventArgs>(peer.OnComplete);

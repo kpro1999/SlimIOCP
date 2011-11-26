@@ -17,14 +17,13 @@ namespace SlimIOCP
         internal byte HeaderBytesRead;
 
         internal IncomingMessageHeader Header;
-        internal readonly IncomingMessagePool Pool;
 
-        internal IncomingMessage(IncomingMessagePool pool)
+        internal IncomingMessage()
         {
-            Pool = pool;
+
         }
 
-        internal virtual void Reset()
+        internal override void Reset()
         {
             Length = 0;
             IsDone = false;
@@ -32,6 +31,16 @@ namespace SlimIOCP
             DataBytesRemaining = 0;
             HeaderBytesRead = 0;
             Header.Size = 0;
+        }
+
+        internal override void Destroy()
+        {
+            Reset();
+        }
+
+        internal override void BufferAssigned()
+        {
+
         }
     }
 }

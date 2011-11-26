@@ -6,19 +6,36 @@ using System.Net.Sockets;
 
 namespace SlimIOCP
 {
-    public class OutgoingBuffer : OutgoingMessage
+    public class OutgoingMessage : BaseOutgoingMessage2
     {
         internal Connection Connection;
 
         internal readonly Peer Peer;
         internal readonly SocketAsyncEventArgs AsyncArgs;
 
-        internal OutgoingBuffer(Peer peer, SocketAsyncEventArgs asyncArgs, BufferManager bufferManager, int bufferId, int bufferOffset, int bufferSize)
-            : base(bufferManager)
+        internal OutgoingMessage(Peer peer, SocketAsyncEventArgs asyncArgs)
         {
             Peer = peer;
             AsyncArgs = asyncArgs;
-            SetBuffer(asyncArgs.Buffer, bufferId, bufferOffset, bufferSize);
+        }
+
+        internal override void Destroy()
+        {
+            base.Destroy();
+            Connection = null;
+            AsyncArgs.SetBuffer(null, 0, 0);
+        }
+
+        internal override void Reset()
+        {
+            base.Reset();
+            Connection = null;
+            BufferAssigned();
+        }
+
+        internal override void BufferAssigned()
+        {
+            AsyncArgs.SetBuffer(BufferHandle, BufferOffset, BufferSize);
         }
 
         public override bool TryQueue()
@@ -35,23 +52,15 @@ namespace SlimIOCP
             {
                 if (Connection.Sending)
                 {
-                    Connection.SendQueue.Enqueue(AsyncArgs);
+                    Connection.SendQueue.Enqueue(this);
                 }
                 else
                 {
-                    Peer.SendAsync(AsyncArgs);
+                    Peer.SendAsync(this);
                 }
             }
 
             return true;
-        }
-
-        internal override void Reset()
-        {
-            base.Reset();
-
-            Connection = null;
-            AsyncArgs.SetBuffer(BufferOffset, BufferSize);
         }
     }
 }

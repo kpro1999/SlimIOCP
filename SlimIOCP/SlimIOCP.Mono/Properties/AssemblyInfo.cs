@@ -5,11 +5,11 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("SlimIOCP.MonoClient")]
+[assembly: AssemblyTitle("SlimIOCP.Mono")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
-[assembly: AssemblyProduct("SlimIOCP.MonoClient")]
+[assembly: AssemblyProduct("SlimIOCP.Mono")]
 [assembly: AssemblyCopyright("Copyright ©  2011")]
 [assembly: AssemblyTrademark("")]
 [assembly: AssemblyCulture("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // The following GUID is for the ID of the typelib if this project is exposed to COM
-[assembly: Guid("0d1fa303-84be-4c56-8d7e-eb75120e50b5")]
+[assembly: Guid("f09ab10e-1def-4464-82e4-a8f3f4387644")]
 
 // Version information for an assembly consists of the following four values:
 //

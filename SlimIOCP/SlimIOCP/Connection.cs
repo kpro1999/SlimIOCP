@@ -15,22 +15,19 @@ namespace SlimIOCP
 
         internal readonly Peer Peer;
         internal readonly Queue<IncomingMessage> ReceiveQueue;
-        internal readonly Queue<SocketAsyncEventArgs> SendQueue;
+        internal readonly Queue<OutgoingMessage> SendQueue;
 
         internal Connection(Peer peer)
         {
             Peer = peer;
-            SendQueue = new Queue<SocketAsyncEventArgs>();
+            SendQueue = new Queue<OutgoingMessage>();
             ReceiveQueue = new Queue<IncomingMessage>();
         }
 
-        public bool TryCreateMessage(out OutgoingBuffer message)
+        public bool TryCreateMessage(out OutgoingMessage message)
         {
-            SocketAsyncEventArgs asyncArgs;
-
-            if (Peer.SendAsyncArgsPool.TryPop(out asyncArgs))
+            if (Peer.OutgoingMessagePool.TryPop(out message))
             {
-                message = (OutgoingBuffer)asyncArgs.UserToken;
                 message.Connection = this;
                 return true;
             }
@@ -43,6 +40,7 @@ namespace SlimIOCP
         {
             Socket = null;
             Sending = false;
+            Message = null;
         }
     }
 }

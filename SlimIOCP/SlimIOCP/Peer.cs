@@ -13,35 +13,33 @@ namespace SlimIOCP
         static int ThreadId = 0;
 
         internal Socket Socket;
-        internal Queue<IncomingBuffer2> IncomingBufferQueue;
-        internal readonly QueuePool<IncomingBuffer2> IncomingBufferQueuePool;
+        internal Queue<IncomingBuffer> IncomingBufferQueue;
+        internal readonly QueuePool<IncomingBuffer> IncomingBufferQueuePool;
 
         internal readonly object IncomingBufferQueueSync = new object();
 
-        internal readonly Receiver Receiver;
+        internal readonly ReceiverThread Receiver;
         internal readonly Thread ReceiverThread;
         internal readonly ManualResetEvent ReceiverEvent;
-        internal readonly OutgoingBufferAsyncArgsPool SendAsyncArgsPool;
 
-        //internal readonly IncomingBufferAsyncArgsPool ReceiveAsyncArgsPool;
-        internal readonly MessageBufferPool<IncomingBuffer2> IncomingBufferPool;
-
-        internal readonly IncomingMessagePool IncomingMessagePool;
+        internal readonly MessageBufferPool<IncomingBuffer> IncomingBufferPool;
+        internal readonly MessageBufferPool<IncomingMessage> IncomingMessagePool;
+        internal readonly MessageBufferPool<OutgoingMessage> OutgoingMessagePool;
 
         public IPEndPoint EndPoint { get; private set; }
 
         internal Peer()
         {
-            Receiver = new Receiver(this);
+            Receiver = new ReceiverThread(this);
             ReceiverEvent = new ManualResetEvent(true);
             ReceiverThread = new Thread(Receiver.Start);
 
-            SendAsyncArgsPool = new OutgoingBufferAsyncArgsPool(this);
+            IncomingBufferPool = new MessageBufferPool<IncomingBuffer>(new IncomingBufferProducer(this));
+            IncomingMessagePool = new MessageBufferPool<IncomingMessage>(new IncomingMessageProducer());
+            OutgoingMessagePool = new MessageBufferPool<OutgoingMessage>(new OutgoingMessageProducer(this));
 
-            IncomingMessagePool = new IncomingMessagePool(1024);
-            IncomingBufferQueue = new Queue<IncomingBuffer2>();
-            IncomingBufferPool = new MessageBufferPool<IncomingBuffer2>(new IncomingBuffer2Producer(this));
-            IncomingBufferQueuePool = new QueuePool<IncomingBuffer2>(32);
+            IncomingBufferQueue = new Queue<IncomingBuffer>();
+            IncomingBufferQueuePool = new QueuePool<IncomingBuffer>(32);
         }
 
         internal void InitSocket(IPEndPoint endPoint)
@@ -66,11 +64,11 @@ namespace SlimIOCP
             switch (asyncArgs.LastOperation)
             {
                 case SocketAsyncOperation.Send:
-                    OnSendComplete(asyncArgs);
+                    OnSendComplete((OutgoingMessage)asyncArgs.UserToken);
                     break;
 
                 case SocketAsyncOperation.Receive:
-                    OnReceiveComplete((IncomingBuffer2)asyncArgs.UserToken);
+                    OnReceiveComplete((IncomingBuffer)asyncArgs.UserToken);
                     break;
 
                 default:
@@ -79,9 +77,9 @@ namespace SlimIOCP
             }
         }
 
-        public void ReceiveAsync(Connection connection)
+        internal void ReceiveAsync(Connection connection)
         {
-            IncomingBuffer2 buffer;
+            IncomingBuffer buffer;
 
             if (IncomingBufferPool.TryPop(out buffer))
             {
@@ -99,42 +97,40 @@ namespace SlimIOCP
             }
         }
 
-        internal void SendAsync(SocketAsyncEventArgs asyncArgs)
+        internal void SendAsync(OutgoingMessage message)
         {
-            var buffer = (OutgoingBuffer)asyncArgs.UserToken;
-
-            if (!buffer.Connection.Sending)
+            if (!message.Connection.Sending)
             {
-                lock (buffer.Connection)
+                lock (message.Connection)
                 {
-                    buffer.Connection.Sending = true;
+                    message.Connection.Sending = true;
                 }
             }
 
             // Common case
-            if (buffer.SendDataBuffer == null)
+            if (message.SendDataBuffer == null)
             {
-                if (buffer.SendDataBytesSent != 0)
+                if (message.SendDataBytesSent != 0)
                 {
-                    asyncArgs.SetBuffer(buffer.BufferOffset + buffer.SendDataBytesSent, buffer.BufferSize - buffer.SendDataBytesSent);
+                    message.AsyncArgs.SetBuffer(message.BufferOffset + message.SendDataBytesSent, message.BufferSize - message.SendDataBytesSent);
                 }
             }
             else
             {
-                var dataOffset = buffer.SendDataOffset + buffer.SendDataBytesSent;
-                var sendLength = Math.Min(buffer.SendDataBytesRemaining, buffer.BufferSize);
-                asyncArgs.SetBuffer(buffer.BufferOffset, sendLength);
-                System.Buffer.BlockCopy(buffer.SendDataBuffer, dataOffset, asyncArgs.Buffer, buffer.BufferOffset, sendLength);
+                var dataOffset = message.SendDataOffset + message.SendDataBytesSent;
+                var sendLength = Math.Min(message.SendDataBytesRemaining, message.BufferSize);
+                message.AsyncArgs.SetBuffer(message.BufferOffset, sendLength);
+                System.Buffer.BlockCopy(message.SendDataBuffer, dataOffset, message.BufferHandle, message.BufferOffset, sendLength);
             }
 
-            var isDone = !buffer.Connection.Socket.SendAsync(asyncArgs);
+            var isDone = !message.Connection.Socket.SendAsync(message.AsyncArgs);
             if (isDone)
             {
-                OnSendComplete(asyncArgs);
+                OnSendComplete(message);
             }
         }
 
-        void OnReceiveComplete(IncomingBuffer2 buffer)
+        void OnReceiveComplete(IncomingBuffer buffer)
         {
             if (buffer.AsyncArgs.BytesTransferred == 0)
             {
@@ -153,26 +149,25 @@ namespace SlimIOCP
             ReceiveAsync(connection);
         }
 
-        void OnSendComplete(SocketAsyncEventArgs asyncArgs)
+        void OnSendComplete(OutgoingMessage message)
         {
-            if (asyncArgs.SocketError != SocketError.Success)
+            if (message.AsyncArgs.SocketError != SocketError.Success)
             {
                 return;
             }
 
-            var buffer = (OutgoingBuffer)asyncArgs.UserToken;
-            buffer.SendDataBytesRemaining -= asyncArgs.BytesTransferred;
-            buffer.SendDataBytesSent += asyncArgs.BytesTransferred;
+            message.SendDataBytesRemaining -= message.AsyncArgs.BytesTransferred;
+            message.SendDataBytesSent += message.AsyncArgs.BytesTransferred;
 
-            if (buffer.SendDataBytesRemaining > 0)
+            if (message.SendDataBytesRemaining > 0)
             {
-                SendAsync(asyncArgs);
+                SendAsync(message);
             }
             else
             {
-                var connection = buffer.Connection;
+                var connection = message.Connection;
 
-                if (!SendAsyncArgsPool.TryPush(asyncArgs))
+                if (!OutgoingMessagePool.TryPush(message))
                 {
                     //TODO: Error
                 }

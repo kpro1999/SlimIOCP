@@ -80,10 +80,6 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SlimIOCP.MonoClient\SlimIOCP.MonoClient.csproj">
-      <Project>{EB911308-181A-4FBC-9FB9-F1EF630D7FBF}</Project>
-      <Name>SlimIOCP.MonoClient</Name>
-    </ProjectReference>
     <ProjectReference Include="..\SlimIOCP\SlimIOCP.csproj">
       <Project>{5781BB87-9F23-43B4-8A93-AB2670B7CE71}</Project>
       <Name>SlimIOCP</Name>

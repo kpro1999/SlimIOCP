@@ -5,57 +5,7 @@ using System.Text;
 
 namespace SlimIOCP
 {
-    /*
-    internal interface IMessageBufferProducer<T> where T : MessageBuffer2
-    {
-        T Create();
-        void Return(T message);
-    }
-    */
-
-    internal abstract class MessageBufferProducer<T> where T : MessageBuffer2
-    {
-        readonly Queue<T> pool;
-
-        public MessageBufferProducer()
-        {
-            pool = new Queue<T>();
-        }
-
-        protected abstract T Create();
-
-        public T Get()
-        {
-            if (pool.Count > 0)
-            {
-                lock (pool)
-                {
-                    if (pool.Count > 0)
-                    {
-                        return pool.Dequeue();
-                    }
-                }
-            }
-
-            return Create();
-        }
-
-        public void Return(T message)
-        {
-            if (pool.Count < 32)
-            {
-                lock (pool)
-                {
-                    if (pool.Count < 32)
-                    {
-                        pool.Enqueue(message);
-                    }
-                }
-            }
-        }
-    }
-
-    internal class MessageBufferPool<T> where T : MessageBuffer2
+    internal class MessageBufferPool<T> where T : MessageBuffer
     {
         int clearBufferId = -1;
         readonly int poolAmount;
@@ -106,15 +56,12 @@ namespace SlimIOCP
 
         internal bool TryPop(out T message)
         {
-            if (pool.Count > 0)
+            lock (pool)
             {
-                lock (pool)
+                if (pool.Count > 0)
                 {
-                    if (pool.Count > 0)
-                    {
-                        message = pool.Dequeue();
-                        return true;
-                    }
+                    message = pool.Dequeue();
+                    return true;
                 }
             }
 

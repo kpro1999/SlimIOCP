@@ -6,25 +6,33 @@ using System.Net.Sockets;
 
 namespace SlimIOCP
 {
-    internal class IncomingBuffer : MessageBuffer
+    class IncomingBuffer : MessageBuffer
     {
         internal Connection Connection;
 
         internal readonly Peer Peer;
-        internal readonly BufferManager BufferManager;
         internal readonly SocketAsyncEventArgs AsyncArgs;
 
-        internal IncomingBuffer(Peer peer, SocketAsyncEventArgs asyncArgs, BufferManager bufferManager, int bufferId, int bufferOffset, int bufferSize)
+        internal IncomingBuffer(Peer peer, SocketAsyncEventArgs asyncArgs)
         {
             Peer = peer;
             AsyncArgs = asyncArgs;
-            BufferManager = bufferManager;
-            SetBuffer(asyncArgs.Buffer, bufferId, bufferOffset, bufferSize);
         }
 
-        internal void Reset()
+        internal override void Reset()
         {
             Connection = null;
+        }
+
+        internal override void Destroy()
+        {
+            Connection = null;
+            AsyncArgs.SetBuffer(null, 0, 0);
+        }
+
+        internal override void BufferAssigned()
+        {
+            AsyncArgs.SetBuffer(BufferHandle, BufferOffset, BufferSize);
         }
     }
 }

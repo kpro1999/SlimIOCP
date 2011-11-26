@@ -4,8 +4,8 @@ SlimIOCP/SlimIOCP.DemoClient/bin
 SlimIOCP/SlimIOCP.DemoClient/obj
 SlimIOCP/SlimIOCP.DemoServer/bin
 SlimIOCP/SlimIOCP.DemoServer/obj
-SlimIOCP/SlimIOCP.MonoClient/bin
-SlimIOCP/SlimIOCP.MonoClient/obj
+SlimIOCP/SlimIOCP.Mono/bin
+SlimIOCP/SlimIOCP.Mono/obj
 SlimIOCP/SlimIOCP.Shared/bin
 SlimIOCP/SlimIOCP.Shared/obj
 *.pidb
