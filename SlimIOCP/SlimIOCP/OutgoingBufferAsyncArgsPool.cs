@@ -6,23 +6,23 @@ using System.Net.Sockets;
 
 namespace SlimIOCP
 {
-    internal class DataAsyncArgsPool : Pool
+    internal class OutgoingBufferAsyncArgsPool
     {
         readonly Peer peer;
-        readonly Stack<SocketAsyncEventArgs> pool;
+        readonly Queue<SocketAsyncEventArgs> pool;
         readonly BufferManager bufferManager;
 
-        public DataAsyncArgsPool(Peer peer)
+        public OutgoingBufferAsyncArgsPool(Peer peer)
             : this(peer, 1024, 1024, 1024)
         {
 
         }
 
-        internal DataAsyncArgsPool(Peer peer, int preAllocateAmount, int bufferChunkSize, int chunksPerBuffer)
+        internal OutgoingBufferAsyncArgsPool(Peer peer, int preAllocateAmount, int bufferChunkSize, int chunksPerBuffer)
         {
             this.peer = peer;
 
-            pool = new Stack<SocketAsyncEventArgs>();
+            pool = new Queue<SocketAsyncEventArgs>();
             bufferManager = new BufferManager(5, bufferChunkSize, chunksPerBuffer);
 
             SocketAsyncEventArgs asyncArgs;
@@ -33,7 +33,7 @@ namespace SlimIOCP
                 {
                     if (!TryPush(asyncArgs))
                     {
-                        //TODO: Report error   
+                        //TODO: Report error
                     }
                 }
                 else
@@ -48,29 +48,20 @@ namespace SlimIOCP
 #if DEBUG
             if (asyncArgs == null)
             {
-                //TODO: Error
-                return false;
+                throw new ArgumentNullException("asyncArgs");
             }
 
-            if (!(asyncArgs.UserToken is DataToken))
+            if (!(asyncArgs.UserToken is OutgoingBuffer))
             {
-                //TODO: Error
-                return false;
+                throw new ArgumentException("UserToken is not an OutgoingMessage", "asyncArgs");
             }
 #endif
-            var token = (DataToken)asyncArgs.UserToken;
-
-            token.Connection = null;
-            token.SendData = null;
-            token.SendDataBytesRemaining = DataToken.HeaderSize;
-            token.SendDataBytesSent = 0;
-            token.SendDataOffset = 0;
-
-            asyncArgs.SetBuffer(token.BufferOffset, token.BufferSize);
+            var message = (OutgoingBuffer)asyncArgs.UserToken;
+            message.Reset();
 
             lock (pool)
             {
-                pool.Push(asyncArgs);
+                pool.Enqueue(asyncArgs);
             }
 
             return true;
@@ -84,7 +75,7 @@ namespace SlimIOCP
                 {
                     if (pool.Count > 0)
                     {
-                        asyncArgs = pool.Pop();
+                        asyncArgs = pool.Dequeue();
                         return true;
                     }
                 }
@@ -102,11 +93,9 @@ namespace SlimIOCP
 
             if (bufferManager.TryAllocateBuffer(out bufferId, out bufferOffset, out bufferSize, out bufferHandle))
             {
-                Allocated++;
-
                 asyncArgs = new SocketAsyncEventArgs();
                 asyncArgs.SetBuffer(bufferHandle, bufferOffset, bufferSize);
-                asyncArgs.UserToken = new DataToken(peer, asyncArgs, bufferManager, bufferId, bufferOffset, bufferSize);
+                asyncArgs.UserToken = new OutgoingBuffer(peer, asyncArgs, bufferManager, bufferId, bufferOffset, bufferSize);
                 asyncArgs.Completed += new EventHandler<SocketAsyncEventArgs>(peer.OnComplete);
 
                 return true;

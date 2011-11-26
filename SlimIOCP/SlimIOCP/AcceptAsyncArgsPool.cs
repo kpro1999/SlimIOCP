@@ -6,7 +6,7 @@ using System.Net.Sockets;
 
 namespace SlimIOCP
 {
-    internal class AcceptAsyncArgsPool : Pool
+    internal class AcceptAsyncArgsPool 
     {
         readonly Server server;
         readonly Stack<SocketAsyncEventArgs> pool;
@@ -90,8 +90,6 @@ namespace SlimIOCP
             asyncArgs = new SocketAsyncEventArgs();
             asyncArgs.UserToken = new AcceptToken();
             asyncArgs.Completed += new EventHandler<SocketAsyncEventArgs>(server.OnAcceptCompleted);
-
-            ++Allocated;
 
             return true;
         }

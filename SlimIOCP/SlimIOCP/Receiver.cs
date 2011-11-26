@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net.Sockets;
+using System.Threading;
 
 namespace SlimIOCP
 {
     internal class Receiver
     {
-        Queue<SocketAsyncEventArgs> receiveQueue;
-
         readonly Peer peer;
 
         internal Receiver(Peer peer)
@@ -25,51 +24,65 @@ namespace SlimIOCP
 
         void Receive()
         {
+            Queue<SocketAsyncEventArgs> queue = null;
+
             while (true)
             {
-                lock (peer.ReceiveQueueSync)
+                lock (peer.IncomingBufferQueueSync)
                 {
-                    if (peer.ReceiveQueue.Count > 0)
+                    if (peer.IncomingBufferQueue.Count > 0)
                     {
-                        receiveQueue = peer.ReceiveQueue;
-                        peer.ReceiveQueue = new Queue<SocketAsyncEventArgs>();
+                        queue = peer.IncomingBufferQueue;
+
+                        if (!peer.AsyncArgsQueuePool.TryPop(out peer.IncomingBufferQueue))
+                        {
+                            //TODO: Error
+                        }
                     }
                 }
 
-                while (receiveQueue != null && receiveQueue.Count > 0)
+                if (queue != null)
                 {
-                    var asyncArgs = receiveQueue.Dequeue();
-                    var token = (DataToken)asyncArgs.UserToken;
-                    var connection = token.Connection;
-
-                    var buffer = asyncArgs.Buffer;
-                    var bufferOffset = token.BufferOffset;
-                    var bufferLength = asyncArgs.BytesTransferred;
-
-                    while (bufferLength > 0)
+                    while (queue.Count > 0)
                     {
-                        if (connection.Message == null)
+                        var asyncArgs = queue.Dequeue();
+                        var buffer = (IncomingBuffer)asyncArgs.UserToken;
+                        var connection = buffer.Connection;
+
+                        var bufferHandle = asyncArgs.Buffer;
+                        var bufferOffset = buffer.BufferOffset;
+                        var bufferLength = asyncArgs.BytesTransferred;
+
+                        while (bufferLength > 0)
                         {
-                            if (!peer.IncomingMessagePool.TryPop(out connection.Message))
+                            if (connection.Message == null)
                             {
-                                //TODO: Error
+                                if (!peer.IncomingMessagePool.TryPop(out connection.Message))
+                                {
+                                    //TODO: Error
+                                }
+                            }
+
+                            connection.Message = ReceiverUtils.Receive(connection.Message, bufferHandle, ref bufferOffset, ref bufferLength);
+
+                            if (connection.Message.IsDone)
+                            {
+                                lock (connection.ReceiveQueue)
+                                {
+                                    connection.ReceiveQueue.Enqueue(connection.Message);
+                                }
+
+                                connection.Message = null;
                             }
                         }
 
-                        connection.Message = ReceiverUtils.Receive(connection.Message, buffer, ref bufferOffset, ref bufferLength);
-
-                        if (connection.Message.IsDone)
+                        if (!peer.ReceiveAsyncArgsPool.TryPush(asyncArgs))
                         {
-                            lock (connection.ReceiveQueue)
-                            {
-                                connection.ReceiveQueue.Enqueue(connection.Message);
-                            }
-
-                            connection.Message = null;
+                            //TODO: Error
                         }
                     }
 
-                    if (!peer.ReceiveAsyncArgsPool.TryPush(asyncArgs))
+                    if (!peer.AsyncArgsQueuePool.TryPush(queue))
                     {
                         //TODO: Error
                     }
@@ -77,7 +90,7 @@ namespace SlimIOCP
 
                 peer.ReceiverEvent.Reset();
 
-                if (peer.ReceiveQueue.Count == 0)
+                if (peer.IncomingBufferQueue.Count == 0)
                 {
                     peer.ReceiverEvent.WaitOne();
                 }

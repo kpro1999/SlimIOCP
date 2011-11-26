@@ -9,11 +9,8 @@ namespace SlimIOCP
 {
     public class Connection
     {
-        internal bool Pooled;
         internal bool Sending;
         internal Socket Socket;
-        internal bool IsQueued;
-
         internal IncomingMessage Message;
 
         internal readonly Peer Peer;
@@ -27,24 +24,25 @@ namespace SlimIOCP
             ReceiveQueue = new Queue<IncomingMessage>();
         }
 
-        internal void MessageComplete()
-        {
-            ReceiveQueue.Enqueue(Message);
-        }
-
-        public bool TryCreateMessage(out DataToken message)
+        public bool TryCreateMessage(out OutgoingBuffer message)
         {
             SocketAsyncEventArgs asyncArgs;
 
             if (Peer.SendAsyncArgsPool.TryPop(out asyncArgs))
             {
-                message = (DataToken)asyncArgs.UserToken;
+                message = (OutgoingBuffer)asyncArgs.UserToken;
                 message.Connection = this;
                 return true;
             }
 
             message = null;
             return false;
+        }
+
+        internal virtual void Reset()
+        {
+            Socket = null;
+            Sending = false;
         }
     }
 }

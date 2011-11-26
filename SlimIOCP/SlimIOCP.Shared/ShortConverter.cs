@@ -10,7 +10,7 @@ namespace SlimIOCP
     public struct ShortConverter
     {
         [FieldOffset(0)]
-        public ushort Short;
+        public ushort UShort;
         [FieldOffset(0)]
         public byte Byte0;
         [FieldOffset(1)]

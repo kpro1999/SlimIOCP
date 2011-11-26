@@ -5,15 +5,17 @@ using System.Text;
 
 namespace SlimIOCP
 {
-    public abstract class OutgoingMessage : Message
+    public abstract class OutgoingMessage : MessageBuffer
     {
-        internal BufferManager BufferManager;
+        internal readonly BufferManager BufferManager;
         internal ShortConverter ShortConverter;
 
-        internal byte[] SendBuffer;
+        internal byte[] SendDataBuffer;
         internal int SendDataOffset;
         internal int SendDataBytesSent;
         internal int SendDataBytesRemaining;
+
+        public bool HasDataToSend { get { return SendDataBytesRemaining > HEADER_SIZE; } }
 
         internal OutgoingMessage(BufferManager bufferManager)
         {
@@ -23,6 +25,8 @@ namespace SlimIOCP
                 throw new ArgumentNullException("bufferManager");
             }
 #endif
+
+            BufferManager = bufferManager;
         }
 
         public bool TryWrite(byte[] data)
@@ -44,15 +48,15 @@ namespace SlimIOCP
                 {
                     // Calculate total message data
                     SendDataBytesRemaining += length;
-                    SendBuffer = new byte[SendDataBytesRemaining];
+                    SendDataBuffer = new byte[SendDataBytesRemaining];
 
                     // Write the message length
-                    ShortConverter.Short = (ushort)length;
-                    SendBuffer[0] = ShortConverter.Byte0;
-                    SendBuffer[1] = ShortConverter.Byte1;
+                    ShortConverter.UShort = (ushort)length;
+                    SendDataBuffer[0] = ShortConverter.Byte0;
+                    SendDataBuffer[1] = ShortConverter.Byte1;
 
                     // Copy the message into the SendData buffer
-                    System.Buffer.BlockCopy(data, offset, SendBuffer, 2, length);
+                    System.Buffer.BlockCopy(data, offset, SendDataBuffer, 2, length);
                     return true;
                 }
                 else
@@ -60,6 +64,14 @@ namespace SlimIOCP
                     return false;
                 }
             }
+        }
+
+        internal virtual void Reset()
+        {
+            SendDataBuffer = null;
+            SendDataOffset = 0;
+            SendDataBytesSent = 0;
+            SendDataBytesRemaining = HEADER_SIZE;
         }
 
         public abstract bool TryQueue();

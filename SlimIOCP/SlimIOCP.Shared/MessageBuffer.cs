@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SlimIOCP
 {
-    public abstract class Message
+    public class MessageBuffer
     {
         public const int HEADER_SIZE = 2;
 
@@ -23,10 +23,18 @@ namespace SlimIOCP
             }
 #endif
 
-            BufferHandle = bufferHandle;
             BufferId = bufferId;
             BufferSize = bufferSize;
             BufferOffset = bufferOffset;
+            BufferHandle = bufferHandle;
+        }
+
+        internal void ResetBuffer()
+        {
+            BufferId = 0;
+            BufferSize = 0;
+            BufferOffset = 0;
+            BufferHandle = null;
         }
     }
 }

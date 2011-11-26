@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SlimIOCP
 {
-    internal class ConnectionPool : Pool
+    internal class ConnectionPool
     {
         Peer peer;
         Stack<Connection> pool = new Stack<Connection>();
@@ -18,6 +18,13 @@ namespace SlimIOCP
 
         internal ConnectionPool(Peer peer, int preAllocateAmount)
         {
+#if DEBUG
+            if (peer == null)
+            {
+                throw new ArgumentNullException("peer");
+            }
+#endif
+
             this.peer = peer;
 
             Connection connection;
@@ -41,16 +48,14 @@ namespace SlimIOCP
 
         public bool TryPop(out Connection connection)
         {
-            if (Pooled > 0)
+            if (pool.Count > 0)
             {
                 lock (pool)
                 {
-                    if (Pooled > 0)
+                    if (pool.Count > 0)
                     {
                         connection = pool.Pop();
-                        connection.Pooled = false;
 
-                        --Pooled;
                         return true;
                     }
                 }
@@ -62,31 +67,31 @@ namespace SlimIOCP
         public bool TryPush(Connection connection)
         {
 #if DEBUG
+            if (connection == null)
+            {
+                throw new ArgumentNullException("connection");
+            }
+
             if (connection.SendQueue.Count > 0)
             {
                 //TODO: Error
                 return false;
             }
 #endif
-            connection.Socket = null;
-            connection.IsQueued = false;
-            connection.Pooled = true;
+
+            connection.Reset();
 
             lock (pool)
             {
                 pool.Push(connection);
             }
 
-            ++Pooled;
             return true;
         }
 
         bool TryAllocate(out Connection connection)
         {
             connection = new Connection(peer);
-            connection.Pooled = false;
-
-            ++Allocated;
             return true;
         }
     }

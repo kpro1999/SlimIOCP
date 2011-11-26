@@ -37,6 +37,15 @@ namespace SlimIOCP
 
         internal bool TryPush(IncomingMessage message)
         {
+#if DEBUG
+            if (message == null)
+            {
+                throw new ArgumentNullException("message");
+            }
+#endif
+
+            message.Reset();
+
             lock (pool)
             {
                 pool.Push(message);

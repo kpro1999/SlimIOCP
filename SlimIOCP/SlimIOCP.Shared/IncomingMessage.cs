@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SlimIOCP
 {
-    public class IncomingMessage : Message
+    public class IncomingMessage : MessageBuffer
     {
         public int Length { get; internal set; }
         public int Offset { get { return BufferOffset; } }
@@ -24,7 +24,7 @@ namespace SlimIOCP
             Pool = pool;
         }
 
-        public bool TryRecycle()
+        internal virtual void Reset()
         {
             Length = 0;
             IsDone = false;
@@ -32,8 +32,6 @@ namespace SlimIOCP
             DataBytesRemaining = 0;
             HeaderBytesRead = 0;
             Header.Size = 0;
-
-            return Pool.TryPush(this);
         }
     }
 }

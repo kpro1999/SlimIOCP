@@ -50,12 +50,14 @@
     <Compile Include="AcceptToken.cs" />
     <Compile Include="Connection.cs" />
     <Compile Include="ConnectionPool.cs" />
+    <Compile Include="IncomingBufferAsyncArgsPool.cs" />
+    <Compile Include="IncomingBuffer.cs" />
     <Compile Include="Peer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Receiver.cs" />
     <Compile Include="Server.cs" />
-    <Compile Include="DataAsyncArgsPool.cs" />
-    <Compile Include="DataToken.cs" />
+    <Compile Include="OutgoingBufferAsyncArgsPool.cs" />
+    <Compile Include="OutgoingBuffer.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SlimIOCP.Shared\SlimIOCP.Shared.csproj">
