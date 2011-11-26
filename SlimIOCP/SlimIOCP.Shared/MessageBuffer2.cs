@@ -7,6 +7,8 @@ namespace SlimIOCP
 {
     public abstract class MessageBuffer2
     {
+        public const int HEADER_SIZE = 2;
+
         internal int BufferId;
         internal int BufferSize;
         internal int BufferOffset;

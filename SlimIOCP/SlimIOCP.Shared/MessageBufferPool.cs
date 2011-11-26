@@ -5,10 +5,54 @@ using System.Text;
 
 namespace SlimIOCP
 {
+    /*
     internal interface IMessageBufferProducer<T> where T : MessageBuffer2
     {
         T Create();
         void Return(T message);
+    }
+    */
+
+    internal abstract class MessageBufferProducer<T> where T : MessageBuffer2
+    {
+        readonly Queue<T> pool;
+
+        public MessageBufferProducer()
+        {
+            pool = new Queue<T>();
+        }
+
+        protected abstract T Create();
+
+        public T Get()
+        {
+            if (pool.Count > 0)
+            {
+                lock (pool)
+                {
+                    if (pool.Count > 0)
+                    {
+                        return pool.Dequeue();
+                    }
+                }
+            }
+
+            return Create();
+        }
+
+        public void Return(T message)
+        {
+            if (pool.Count < 32)
+            {
+                lock (pool)
+                {
+                    if (pool.Count < 32)
+                    {
+                        pool.Enqueue(message);
+                    }
+                }
+            }
+        }
     }
 
     internal class MessageBufferPool<T> where T : MessageBuffer2
@@ -18,15 +62,15 @@ namespace SlimIOCP
 
         readonly Queue<T> pool;
         readonly BufferManager bufferManager;
-        readonly IMessageBufferProducer<T> producer;
+        readonly MessageBufferProducer<T> producer;
 
-        internal MessageBufferPool(IMessageBufferProducer<T> messageProducer)
+        internal MessageBufferPool(MessageBufferProducer<T> messageProducer)
             : this(messageProducer, 5, 1024, 1024, 1024)
         {
 
         }
 
-        internal MessageBufferPool(IMessageBufferProducer<T> messageProducer, int maxBuffers, int chunkSize, int chunksPerBlock, int maxPooled)
+        internal MessageBufferPool(MessageBufferProducer<T> messageProducer, int maxBuffers, int chunkSize, int chunksPerBlock, int maxPooled)
         {
 #if DEBUG
             if (messageProducer == null)
@@ -119,7 +163,7 @@ namespace SlimIOCP
 
             if (bufferManager.TryAllocateBuffer(out bufferId, out bufferOffset, out bufferSize, out bufferHandle))
             {
-                message = producer.Create();
+                message = producer.Get();
                 message.SetBuffer(bufferManager, bufferHandle, bufferId, bufferOffset, bufferSize);
                 message.BufferAssigned();
                 return true;

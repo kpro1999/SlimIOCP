@@ -54,6 +54,7 @@
     <Compile Include="MessageBuffer2.cs" />
     <Compile Include="MessageBufferPool.cs" />
     <Compile Include="OutgoingMessage.cs" />
+    <Compile Include="BaseOutgoingMessage2.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="QueuePool.cs" />
     <Compile Include="ReceiverUtils.cs" />
