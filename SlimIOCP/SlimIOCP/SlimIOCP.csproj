@@ -52,6 +52,8 @@
     <Compile Include="ConnectionPool.cs" />
     <Compile Include="IncomingBufferAsyncArgsPool.cs" />
     <Compile Include="IncomingBuffer.cs" />
+    <Compile Include="Incoming\IncomingBuffer2.cs" />
+    <Compile Include="Incoming\IncomingBuffer2Producer.cs" />
     <Compile Include="Peer.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Receiver.cs" />

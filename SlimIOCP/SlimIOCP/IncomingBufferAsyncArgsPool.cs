@@ -6,7 +6,7 @@ using System.Net.Sockets;
 
 namespace SlimIOCP
 {
-    internal class IncomingBufferAsyncArgsPool
+    internal class IncomingBufferAsyncArgsPool 
     {
         readonly Peer peer;
         readonly Queue<SocketAsyncEventArgs> pool;

@@ -13,16 +13,20 @@ namespace SlimIOCP
         static int ThreadId = 0;
 
         internal Socket Socket;
-        internal Queue<SocketAsyncEventArgs> IncomingBufferQueue;
+        internal Queue<IncomingBuffer2> IncomingBufferQueue;
+        internal readonly QueuePool<IncomingBuffer2> IncomingBufferQueuePool;
+
         internal readonly object IncomingBufferQueueSync = new object();
 
         internal readonly Receiver Receiver;
         internal readonly Thread ReceiverThread;
         internal readonly ManualResetEvent ReceiverEvent;
         internal readonly OutgoingBufferAsyncArgsPool SendAsyncArgsPool;
-        internal readonly IncomingBufferAsyncArgsPool ReceiveAsyncArgsPool;
+
+        //internal readonly IncomingBufferAsyncArgsPool ReceiveAsyncArgsPool;
+        internal readonly MessageBufferPool<IncomingBuffer2> IncomingBufferPool;
+
         internal readonly IncomingMessagePool IncomingMessagePool;
-        internal readonly QueuePool<SocketAsyncEventArgs> AsyncArgsQueuePool;
 
         public IPEndPoint EndPoint { get; private set; }
 
@@ -31,11 +35,13 @@ namespace SlimIOCP
             Receiver = new Receiver(this);
             ReceiverEvent = new ManualResetEvent(true);
             ReceiverThread = new Thread(Receiver.Start);
-            IncomingBufferQueue = new Queue<SocketAsyncEventArgs>();
+
             SendAsyncArgsPool = new OutgoingBufferAsyncArgsPool(this);
-            ReceiveAsyncArgsPool = new IncomingBufferAsyncArgsPool(this);
+
             IncomingMessagePool = new IncomingMessagePool(1024);
-            AsyncArgsQueuePool = new QueuePool<SocketAsyncEventArgs>(32);
+            IncomingBufferQueue = new Queue<IncomingBuffer2>();
+            IncomingBufferPool = new MessageBufferPool<IncomingBuffer2>(new IncomingBuffer2Producer(this));
+            IncomingBufferQueuePool = new QueuePool<IncomingBuffer2>(32);
         }
 
         internal void InitSocket(IPEndPoint endPoint)
@@ -64,7 +70,7 @@ namespace SlimIOCP
                     break;
 
                 case SocketAsyncOperation.Receive:
-                    OnReceiveComplete(asyncArgs);
+                    OnReceiveComplete((IncomingBuffer2)asyncArgs.UserToken);
                     break;
 
                 default:
@@ -75,17 +81,16 @@ namespace SlimIOCP
 
         public void ReceiveAsync(Connection connection)
         {
-            SocketAsyncEventArgs asyncArgs;
+            IncomingBuffer2 buffer;
 
-            if (ReceiveAsyncArgsPool.TryPop(out asyncArgs))
+            if (IncomingBufferPool.TryPop(out buffer))
             {
-                var buffer = (IncomingBuffer)asyncArgs.UserToken;
                 buffer.Connection = connection;
 
-                var isDone = !connection.Socket.ReceiveAsync(asyncArgs);
+                var isDone = !connection.Socket.ReceiveAsync(buffer.AsyncArgs);
                 if (isDone)
                 {
-                    OnReceiveComplete(asyncArgs);
+                    OnReceiveComplete(buffer);
                 }
             }
             else
@@ -129,19 +134,19 @@ namespace SlimIOCP
             }
         }
 
-        void OnReceiveComplete(SocketAsyncEventArgs asyncArgs)
+        void OnReceiveComplete(IncomingBuffer2 buffer)
         {
-            if (asyncArgs.BytesTransferred == 0)
+            if (buffer.AsyncArgs.BytesTransferred == 0)
             {
-                ReceiveAsyncArgsPool.TryPush(asyncArgs);
+                IncomingBufferPool.TryPush(buffer);
                 return;
             }
 
-            var connection = ((IncomingBuffer)asyncArgs.UserToken).Connection;
+            var connection = buffer.Connection;
 
             lock (IncomingBufferQueueSync)
             {
-                IncomingBufferQueue.Enqueue(asyncArgs);
+                IncomingBufferQueue.Enqueue(buffer);
             }
 
             ReceiverEvent.Set();

@@ -24,7 +24,7 @@ namespace SlimIOCP
 
         void Receive()
         {
-            Queue<SocketAsyncEventArgs> queue = null;
+            Queue<IncomingBuffer2> queue = null;
 
             while (true)
             {
@@ -34,7 +34,7 @@ namespace SlimIOCP
                     {
                         queue = peer.IncomingBufferQueue;
 
-                        if (!peer.AsyncArgsQueuePool.TryPop(out peer.IncomingBufferQueue))
+                        if (!peer.IncomingBufferQueuePool.TryPop(out peer.IncomingBufferQueue))
                         {
                             //TODO: Error
                         }
@@ -45,13 +45,12 @@ namespace SlimIOCP
                 {
                     while (queue.Count > 0)
                     {
-                        var asyncArgs = queue.Dequeue();
-                        var buffer = (IncomingBuffer)asyncArgs.UserToken;
-                        var connection = buffer.Connection;
-
-                        var bufferHandle = asyncArgs.Buffer;
+                        var buffer = queue.Dequeue();
+                        var bufferHandle = buffer.BufferHandle;
                         var bufferOffset = buffer.BufferOffset;
-                        var bufferLength = asyncArgs.BytesTransferred;
+                        var bufferLength = buffer.AsyncArgs.BytesTransferred;
+
+                        var connection = buffer.Connection;
 
                         while (bufferLength > 0)
                         {
@@ -76,13 +75,13 @@ namespace SlimIOCP
                             }
                         }
 
-                        if (!peer.ReceiveAsyncArgsPool.TryPush(asyncArgs))
+                        if (!peer.IncomingBufferPool.TryPush(buffer))
                         {
                             //TODO: Error
                         }
                     }
 
-                    if (!peer.AsyncArgsQueuePool.TryPush(queue))
+                    if (!peer.IncomingBufferQueuePool.TryPush(queue))
                     {
                         //TODO: Error
                     }

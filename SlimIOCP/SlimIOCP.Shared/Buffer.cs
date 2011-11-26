@@ -8,15 +8,13 @@ namespace SlimIOCP
 {
     internal class Buffer
     {
+        readonly byte[] storage;
+
         internal readonly int BufferId;
         internal readonly int ChunkSize;
         internal readonly int ChunkCount;
-
-        readonly byte[] storage;
-        readonly Stack<int> freeOffsets = new Stack<int>();
-        readonly HashSet<int> usedOffsets = new HashSet<int>();
-
-        internal int FreeBuffers { get { return freeOffsets.Count; } }
+        internal readonly Stack<int> FreeOffsets = new Stack<int>();
+        internal readonly HashSet<int> UsedOffsets = new HashSet<int>();
 
         internal Buffer(int bufferId, int chunkSize, int chunkCount)
         {
@@ -28,19 +26,19 @@ namespace SlimIOCP
 
             for (var i = (chunkCount-1); i >= 0; --i)
             {
-                freeOffsets.Push(i * chunkSize);
+                FreeOffsets.Push(i * chunkSize);
             }
         }
 
         internal bool TryAllocateBuffer(out int offset, out int size, out byte[] handle)
         {
-            if (freeOffsets.Count > 0)
+            if (FreeOffsets.Count > 0)
             {
                 size = ChunkSize;
-                offset = freeOffsets.Pop();
+                offset = FreeOffsets.Pop();
                 handle = storage;
 
-                usedOffsets.Add(offset);
+                UsedOffsets.Add(offset);
 
                 return true;
             }
@@ -52,14 +50,20 @@ namespace SlimIOCP
             return false;
         }
 
-        internal bool TryReturnBuffer(int index)
+        internal bool TryReturnBuffer(int offset)
         {
-            if (usedOffsets.Contains(index))
+            if (UsedOffsets.Contains(offset))
             {
-                freeOffsets.Push(index);
-                usedOffsets.Remove(index);
+                FreeOffsets.Push(offset);
+                UsedOffsets.Remove(offset);
                 return true;
             }
+#if DEBUG
+            else
+            {
+                throw new ArgumentException("Offset is not in use", "id");
+            }
+#endif
 
             //TODO: Error
             return false;

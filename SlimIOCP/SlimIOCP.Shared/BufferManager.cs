@@ -46,6 +46,35 @@ namespace SlimIOCP
             }
         }
 
+        public bool TryReturnBuffer(int id, int offset)
+        {
+            lock (syncObject)
+            {
+#if DEBUG
+                if (id >= buffers.Count)
+                {
+                    throw new ArgumentException("Buffer id out of range", "id");
+                }
+#endif
+                var buffer = buffers[id];
+
+                if (buffer.TryReturnBuffer(offset))
+                {
+                    if (buffer.UsedOffsets.Count == 0)
+                    {
+                        buffers[id] = null;
+                    }
+
+                    return true;
+                }
+                else
+                {
+                    //TODO: Error
+                    return false;
+                }
+            }
+        }
+
         void initNewBuffer()
         {
             buffers.Add(currentBuffer = new Buffer(buffers.Count, ChunkSize, ChunksPerBuffer));
@@ -55,7 +84,7 @@ namespace SlimIOCP
         {
             for (var i = 0; i < buffers.Count; ++i)
             {
-                if (buffers[i].FreeBuffers > 16)
+                if (buffers[i].FreeOffsets.Count > 16)
                 {
                     currentBuffer = buffers[i];
                     return;
