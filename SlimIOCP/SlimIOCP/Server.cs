@@ -7,15 +7,13 @@ using System.Net.Sockets;
 
 namespace SlimIOCP
 {
-    public class Server : Peer
+    public class Server : Peer, IServer
     {
-        public delegate void NewConnectionCallback(Connection connection);
-
         readonly List<Connection> connections;
         readonly ConnectionPool connectionPool;
         readonly AcceptAsyncArgsPool acceptAsyncArgsPool;
 
-        public event NewConnectionCallback NewConnection;
+        public int ConnectedClients { get { return connections.Count; } }
 
         public Server()
         {
@@ -68,7 +66,6 @@ namespace SlimIOCP
                 connection.Socket = asyncArgs.AcceptSocket;
 
                 ReceiveAsync(connection);
-                NewConnection(connection);
             }
             else
             {

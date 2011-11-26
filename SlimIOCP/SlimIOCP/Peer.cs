@@ -8,31 +8,23 @@ using System.Threading;
 
 namespace SlimIOCP
 {
-    public class Peer
+    public class Peer : BasePeer
     {
-        static int ThreadId = 0;
-
-        internal Socket Socket;
         internal Queue<IncomingBuffer> IncomingBufferQueue;
         internal readonly QueuePool<IncomingBuffer> IncomingBufferQueuePool;
 
         internal readonly object IncomingBufferQueueSync = new object();
 
-        internal readonly ReceiverThread Receiver;
-        internal readonly Thread ReceiverThread;
-        internal readonly ManualResetEvent ReceiverEvent;
+        internal readonly Queue<IncomingMessage> ReceivedMessages;
 
         internal readonly MessageBufferPool<IncomingBuffer> IncomingBufferPool;
         internal readonly MessageBufferPool<IncomingMessage> IncomingMessagePool;
         internal readonly MessageBufferPool<OutgoingMessage> OutgoingMessagePool;
 
-        public IPEndPoint EndPoint { get; private set; }
-
-        internal Peer()
+        internal Peer() : base()
         {
-            Receiver = new ReceiverThread(this);
-            ReceiverEvent = new ManualResetEvent(true);
-            ReceiverThread = new Thread(Receiver.Start);
+            Receiver = new Receiver(this);
+            ReceivedMessages = new Queue<IncomingMessage>();
 
             IncomingBufferPool = new MessageBufferPool<IncomingBuffer>(new IncomingBufferProducer(this));
             IncomingMessagePool = new MessageBufferPool<IncomingMessage>(new IncomingMessageProducer());
@@ -42,21 +34,29 @@ namespace SlimIOCP
             IncomingBufferQueuePool = new QueuePool<IncomingBuffer>(32);
         }
 
-        internal void InitSocket(IPEndPoint endPoint)
+        public override bool TryRecycleMessage(IncomingMessage message)
         {
-            if (Socket == null)
+            lock (IncomingMessagePool)
             {
-                EndPoint = endPoint;
-                Socket = new Socket(endPoint.AddressFamily, SocketType.Stream, ProtocolType.Tcp);
-                Socket.SetSocketOption(SocketOptionLevel.Tcp, SocketOptionName.NoDelay, true);
-                ReceiverThread.IsBackground = true;
-                ReceiverThread.Name = "SlimIOCP Receiver Thread #" + Interlocked.Increment(ref ThreadId);
-                ReceiverThread.Start();
+                return IncomingMessagePool.TryPush(message);
             }
-            else
+        }
+
+        public override bool TryGetMessage(out IncomingMessage message)
+        {
+            lock (ReceivedMessages)
             {
-                //TODO: Error
+                if (ReceivedMessages.Count > 0)
+                {
+                    message = ReceivedMessages.Dequeue();
+                    return true;
+                }
             }
+
+            ReceivedMessageEvent.Reset();
+
+            message = null;
+            return false;
         }
 
         internal void OnComplete(object sender, SocketAsyncEventArgs asyncArgs)

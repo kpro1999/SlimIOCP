@@ -23,19 +23,17 @@ Suspendisse eu erat nec dui blandit placerat id eu sem. Ut porta orci vitae augu
             var server = new Server();
             server.Start(new IPEndPoint(IPAddress.Parse("127.0.0.1"), 14000));
 
-            server.NewConnection += new Server.NewConnectionCallback(server_NewConnection);
+            IncomingMessage message;
 
-            Console.Write("Press [Enter] to exit");
-            Console.ReadLine();
-        }
+            while (true)
+            {
+                while (server.TryGetMessage(out message))
+                {
+                    server.TryRecycleMessage(message);
+                }
 
-        static void server_NewConnection(Connection connection)
-        {
-            /*
-            var message = connection.TryCreateMessage();
-            message.TryWrite(Guid.NewGuid().ToByteArray());
-            message.TryQueue();
-            */
+                server.ReceivedMessageEvent.WaitOne();
+            }
         }
     }
 }

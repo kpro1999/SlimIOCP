@@ -9,13 +9,10 @@ namespace SlimIOCP
     class IncomingBuffer : MessageBuffer
     {
         internal Connection Connection;
-
-        internal readonly Peer Peer;
         internal readonly SocketAsyncEventArgs AsyncArgs;
 
-        internal IncomingBuffer(Peer peer, SocketAsyncEventArgs asyncArgs)
+        internal IncomingBuffer(SocketAsyncEventArgs asyncArgs)
         {
-            Peer = peer;
             AsyncArgs = asyncArgs;
         }
 

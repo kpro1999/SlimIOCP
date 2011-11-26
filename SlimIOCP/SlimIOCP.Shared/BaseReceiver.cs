@@ -6,25 +6,35 @@ using System.Threading;
 
 namespace SlimIOCP
 {
-    internal static class Receiver
+    internal abstract class BaseReceiver
     {
-        static long messagesProcessed;
-        static DateTime timeStart = DateTime.Now;
-        static DateTime lastDisplayTime = DateTime.Now;
+#if DEBUG
+        long messagesProcessed;
+        DateTime timeStart = DateTime.Now;
+        DateTime lastDisplayTime = DateTime.Now;
+#endif
+        internal abstract void ReceiveLoop();
 
-        internal static IncomingMessage Receive(IncomingMessage message, byte[] buffer, ref int offset, ref int length)
+        internal void Start(object threadState)
         {
-            /*
+            Console.WriteLine("Receiver thread started");
+            ReceiveLoop();
+        }
+
+        internal IncomingMessage Receive(IncomingMessage message, byte[] buffer, ref int offset, ref int length)
+        {
+#if DEBUG
             if ((DateTime.Now - lastDisplayTime).TotalMilliseconds > 1000)
             {
                 lastDisplayTime = DateTime.Now;
                 var timeRunning = lastDisplayTime - timeStart;
 
-                Console.WriteLine("Message/Sec: " + messagesProcessed / (timeRunning.TotalMilliseconds / 1000));
+                
+                Console.WriteLine(Thread.CurrentThread.Name + " - Message/Sec: " + messagesProcessed / (timeRunning.TotalMilliseconds / 1000));
             }
-            */
 
             Interlocked.Increment(ref messagesProcessed);
+#endif
 
             if (message.HeaderBytesRead < IncomingMessage.HEADER_SIZE)
             {

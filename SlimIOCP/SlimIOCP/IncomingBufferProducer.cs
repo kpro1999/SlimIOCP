@@ -18,7 +18,7 @@ namespace SlimIOCP
         protected override IncomingBuffer Create()
         {
             var asyncArgs = new SocketAsyncEventArgs();
-            var buffer = new IncomingBuffer(peer, asyncArgs);
+            var buffer = new IncomingBuffer(asyncArgs);
 
             asyncArgs.UserToken = buffer;
             asyncArgs.Completed += new EventHandler<SocketAsyncEventArgs>(peer.OnComplete);

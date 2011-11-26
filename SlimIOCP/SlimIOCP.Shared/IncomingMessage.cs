@@ -10,8 +10,8 @@ namespace SlimIOCP
         public int Length { get; internal set; }
         public int Offset { get { return BufferOffset; } }
         public byte[] Data { get { return BufferHandle; } }
-        public bool IsDone { get; internal set; }
 
+        internal bool IsDone;
         internal int DataBytesRead;
         internal int DataBytesRemaining;
         internal byte HeaderBytesRead;

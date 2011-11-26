@@ -5,15 +5,13 @@ using System.Text;
 
 namespace SlimIOCP
 {
-    public abstract class BaseOutgoingMessage2 : MessageBuffer
+    public abstract class BaseOutgoingMessage : MessageBuffer
     {
         internal byte[] SendDataBuffer;
         internal int SendDataOffset;
         internal int SendDataBytesSent;
         internal int SendDataBytesRemaining;
         internal ShortConverter ShortConverter;
-
-        public bool HasDataToSend { get { return SendDataBytesRemaining > HEADER_SIZE; } }
 
         public bool TryWrite(byte[] data)
         {

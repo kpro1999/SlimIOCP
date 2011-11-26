@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace SlimIOCP.Mono
+namespace SlimIOCP
 {
-    public class Class1
+    public enum MessageType
     {
-
+        Connected, Disconnected, Data, Internal
     }
 }

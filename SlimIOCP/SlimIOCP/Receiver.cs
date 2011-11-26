@@ -7,22 +7,16 @@ using System.Threading;
 
 namespace SlimIOCP
 {
-    internal class ReceiverThread
+    internal class Receiver : BaseReceiver
     {
         readonly Peer peer;
 
-        internal ReceiverThread(Peer peer)
+        internal Receiver(Peer peer)
         {
             this.peer = peer;
         }
 
-        internal void Start(object threadState)
-        {
-            Console.WriteLine("Receiver thread started");
-            Receive();
-        }
-
-        void Receive()
+        internal override void ReceiveLoop()
         {
             Queue<IncomingBuffer> queue = null;
 
@@ -62,17 +56,27 @@ namespace SlimIOCP
                                 }
                             }
 
-                            connection.Message = Receiver.Receive(connection.Message, bufferHandle, ref bufferOffset, ref bufferLength);
+                            connection.Message = Receive(connection.Message, bufferHandle, ref bufferOffset, ref bufferLength);
 
                             if (connection.Message.IsDone)
                             {
+                                /*
                                 lock (connection.ReceiveQueue)
                                 {
                                     //connection.ReceiveQueue.Enqueue(connection.Message);
                                 }
+                                */
 
-                                peer.IncomingMessagePool.TryPush(connection.Message);
+                                // Queue into received messages
+                                lock (peer.ReceivedMessages)
+                                {
+                                    peer.ReceivedMessages.Enqueue(connection.Message);
+                                }
 
+                                // Signal wait event
+                                peer.ReceivedMessageEvent.Set();
+
+                                // Clear message on connection
                                 connection.Message = null;
                             }
                         }

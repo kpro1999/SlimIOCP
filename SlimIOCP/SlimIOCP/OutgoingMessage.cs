@@ -6,7 +6,7 @@ using System.Net.Sockets;
 
 namespace SlimIOCP
 {
-    public class OutgoingMessage : BaseOutgoingMessage2
+    public class OutgoingMessage : BaseOutgoingMessage
     {
         internal Connection Connection;
 
