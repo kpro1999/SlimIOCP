@@ -56,7 +56,7 @@ namespace SlimIOCP.Mono
             {
                 buffer.MonoConnection = connection;
 
-                var result = connection.Socket.BeginReceive(
+                connection.Socket.BeginReceive(
                     buffer.BufferHandle, 
                     buffer.BufferOffset, 
                     buffer.BufferSize, 
@@ -64,16 +64,6 @@ namespace SlimIOCP.Mono
                     ReceiveDone, 
                     buffer
                 );
-
-                if (result.IsCompleted)
-                {
-
-                }
-
-                if (result.CompletedSynchronously)
-                {
-
-                }
             }
             else
             {
