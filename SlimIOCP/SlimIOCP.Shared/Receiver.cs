@@ -26,7 +26,7 @@ namespace SlimIOCP
         >
 
         where TIncomingBuffer : MessageBuffer, INetworkBuffer<TOutgoingMessage, TConnection>, IMessageBuffer<TIncomingMessage, TOutgoingMessage, TConnection>
-        where TIncomingMessage : IncomingMessage<TOutgoingMessage, TConnection>
+        where TIncomingMessage : IncomingMessage<TOutgoingMessage, TConnection>, new()
         where TOutgoingMessage : OutgoingMessage, INetworkBuffer<TOutgoingMessage, TConnection>
         where TConnection : Connection<TOutgoingMessage>
 
@@ -94,6 +94,7 @@ namespace SlimIOCP
 
                             if (message.IsDone)
                             {
+                                message.Type = MessageType.Data;
                                 message.Connection = buffer.Connection;
 
                                 // Queue into received messages

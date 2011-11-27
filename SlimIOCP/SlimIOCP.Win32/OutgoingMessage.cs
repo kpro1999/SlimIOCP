@@ -52,6 +52,7 @@ namespace SlimIOCP.Win32
             if (SendDataBuffer == null)
             {
                 // Write the message length
+                SendDataOffset = BufferOffset;
                 ShortConverter.UShort = (ushort)(SendDataBytesRemaining - 2);
                 BufferHandle[BufferOffset + 0] = ShortConverter.Byte0;
                 BufferHandle[BufferOffset + 1] = ShortConverter.Byte1;

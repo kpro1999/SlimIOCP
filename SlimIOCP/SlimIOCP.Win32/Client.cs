@@ -33,6 +33,8 @@ namespace SlimIOCP.Win32
             Receive(connection);
 
             Connections.Add(connection);
+
+            TryPushMessage(MetaMessagePool.Pop(MessageType.Connected, connection));
         }
     }
 }

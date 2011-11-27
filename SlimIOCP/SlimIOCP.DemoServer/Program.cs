@@ -23,35 +23,50 @@ Suspendisse eu erat nec dui blandit placerat id eu sem. Ut porta orci vitae augu
 
         static void Main(string[] args)
         {
-            var server = new SlimIOCP.Mono.Server();
+            var server = new SlimIOCP.Win32.Server();
             server.Start(new IPEndPoint(IPAddress.Parse("192.168.0.10"), 14000));
 
-            SlimIOCP.Mono.IncomingMessage message;
-            SlimIOCP.Mono.OutgoingMessage outgoingMessage;
+            SlimIOCP.Win32.IncomingMessage message;
+            SlimIOCP.Win32.OutgoingMessage outgoingMessage;
 
             while (true)
             {
 
-                while (server.TryGetMessage(out message))
+                while (server.TryPopMessage(out message))
                 {
-                    var connection = (SlimIOCP.Mono.Connection)message.Connection;
-
-                    if (!connection.TryCreateMessage(out outgoingMessage))
+                    switch (message.MessageType)
                     {
-                        throw new Exception();
-                    }
+                        case MessageType.Data:
+                            var connection = (SlimIOCP.Win32.Connection)message.Connection;
 
-                    if (!outgoingMessage.TryWrite(data))
-                    {
-                        throw new Exception();
-                    }
+                            if (!connection.TryCreateMessage(out outgoingMessage))
+                            {
+                                throw new Exception();
+                            }
 
-                    if (!outgoingMessage.TryQueue())
-                    {
-                        throw new Exception();
-                    }
+                            var val = BitConverter.ToInt32(message.Buffer, message.Offset);
+                            Console.WriteLine("length : " + message.Length);
+                            Console.WriteLine("got " + val + " from client");
 
-                    server.TryRecycleMessage(message);
+                            if (!outgoingMessage.TryWrite(message.Buffer, message.Offset, message.Length))
+                            {
+                                throw new Exception();
+                            }
+
+                            if (!outgoingMessage.TryQueue())
+                            {
+                                throw new Exception();
+                            }
+
+                            server.TryRecycleMessage(message);
+                            break;
+
+                        case MessageType.Connected:
+
+                            Console.WriteLine("Client connected");
+
+                            break;
+                    }
                 }
 
                 server.ReceivedMessageEvent.WaitOne();

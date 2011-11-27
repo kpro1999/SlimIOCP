@@ -47,6 +47,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Connection.cs" />
+    <Compile Include="Log.cs" />
+    <Compile Include="MetaMessagePool.cs" />
     <Compile Include="Peer.cs" />
     <Compile Include="Buffer.cs" />
     <Compile Include="BufferManager.cs" />
@@ -71,6 +73,10 @@
     <None Include="SlimIOCP.Shared.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy "$(TargetPath)" "C:\SlimNet\SlimNet\Externals\" /Y
+xcopy "$(TargetPath)" "C:\SlimNet\CastleBattle\CastleBattle.Unity\Assets\SlimNet\Assemblies\" /Y</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

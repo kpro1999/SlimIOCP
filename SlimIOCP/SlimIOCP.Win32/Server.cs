@@ -62,6 +62,8 @@ namespace SlimIOCP.Win32
                 connection.Socket = asyncArgs.AcceptSocket;
 
                 Receive(connection);
+
+                TryPushMessage(MetaMessagePool.Pop(MessageType.Connected, connection));
             }
             else
             {

@@ -93,6 +93,10 @@
     <None Include="SlimIOCP.Win32.snk" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+  <PropertyGroup>
+    <PostBuildEvent>xcopy "$(TargetPath)" "C:\SlimNet\SlimNet\Externals\" /Y
+xcopy "$(TargetPath)" "C:\SlimNet\CastleBattle\CastleBattle.Unity\Assets\SlimNet\Assemblies\" /Y</PostBuildEvent>
+  </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

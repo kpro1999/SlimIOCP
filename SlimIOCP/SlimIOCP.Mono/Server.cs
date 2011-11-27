@@ -40,6 +40,8 @@ namespace SlimIOCP.Mono
                 connection.Socket = clientSocket;
 
                 Receive(connection);
+
+                TryPushMessage(MetaMessagePool.Pop(MessageType.Connected, connection));
             }
             else
             {

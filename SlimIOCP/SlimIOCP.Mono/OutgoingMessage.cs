@@ -36,6 +36,7 @@ namespace SlimIOCP.Mono
             if (SendDataBuffer == null)
             {
                 // Write the message length
+                SendDataOffset = BufferOffset;
                 ShortConverter.UShort = (ushort)(SendDataBytesRemaining - 2);
                 BufferHandle[BufferOffset + 0] = ShortConverter.Byte0;
                 BufferHandle[BufferOffset + 1] = ShortConverter.Byte1;
@@ -54,6 +55,12 @@ namespace SlimIOCP.Mono
             }
 
             return true;
+        }
+
+        internal override void Reset()
+        {
+            base.Reset();
+            MonoConnection = null;
         }
     }
 }

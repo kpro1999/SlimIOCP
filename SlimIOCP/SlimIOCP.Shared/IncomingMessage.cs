@@ -16,8 +16,8 @@ namespace SlimIOCP
         public TConnection Connection { get; internal set; }
         public MessageType MessageType { get { return Type; } }
 
-        internal MessageType Type;
         internal bool IsDone;
+        internal MessageType Type;
         internal int DataBytesRead;
         internal int DataBytesRemaining;
         internal byte HeaderBytesRead;

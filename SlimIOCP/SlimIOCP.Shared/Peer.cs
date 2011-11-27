@@ -17,7 +17,7 @@ namespace SlimIOCP
 
         where TIncomingBuffer : MessageBuffer, INetworkBuffer<TOutgoingMessage, TConnection>, 
                                 IMessageBuffer<TIncomingMessage, TOutgoingMessage, TConnection>
-        where TIncomingMessage : IncomingMessage<TOutgoingMessage, TConnection>
+        where TIncomingMessage : IncomingMessage<TOutgoingMessage, TConnection>, new()
         where TOutgoingMessage : OutgoingMessage, INetworkBuffer<TOutgoingMessage, TConnection>
         where TConnection : Connection<TOutgoingMessage>
     {
@@ -26,6 +26,7 @@ namespace SlimIOCP
         internal MessageBufferPool<TIncomingBuffer> IncomingBufferPool;
         internal MessageBufferPool<TIncomingMessage> IncomingMessagePool;
         internal MessageBufferPool<TOutgoingMessage> OutgoingMessagePool;
+        internal readonly MetaMessagePool<TIncomingMessage, TOutgoingMessage, TConnection> MetaMessagePool;
 
         internal Queue<TIncomingBuffer> IncomingBufferQueue;
         internal readonly object IncomingBufferQueueSync = new object();
@@ -50,17 +51,27 @@ namespace SlimIOCP
 
             IncomingBufferQueue = new Queue<TIncomingBuffer>();
             IncomingBufferQueuePool = new QueuePool<TIncomingBuffer>(32);
+
+            MetaMessagePool = new MetaMessagePool<TIncomingMessage, TOutgoingMessage, TConnection>(256);
         }
 
         public bool TryRecycleMessage(TIncomingMessage message)
         {
-            lock (IncomingMessagePool)
+            if (message.Type == MessageType.Data)
             {
-                return IncomingMessagePool.TryPush(message);
+                lock (IncomingMessagePool)
+                {
+                    return IncomingMessagePool.TryPush(message);
+                }
+            }
+            else
+            {
+                MetaMessagePool.Push(message);
+                return true;
             }
         }
 
-        public bool TryGetMessage(out TIncomingMessage message)
+        public bool TryPopMessage(out TIncomingMessage message)
         {
             lock (ReceivedMessages)
             {
@@ -75,6 +86,14 @@ namespace SlimIOCP
 
             message = null;
             return false;
+        }
+
+        internal void TryPushMessage(TIncomingMessage message)
+        {
+            lock (ReceivedMessages)
+            {
+                ReceivedMessages.Enqueue(message);
+            }
         }
 
         internal void StartReceiver()
