@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net;
-using SlimIOCP.Win32;
 using System.Threading;
 
 namespace SlimIOCP.DemoServer
@@ -24,18 +23,18 @@ Suspendisse eu erat nec dui blandit placerat id eu sem. Ut porta orci vitae augu
 
         static void Main(string[] args)
         {
-            var server = new SlimIOCP.Win32.Server();
+            var server = new SlimIOCP.Mono.Server();
             server.Start(new IPEndPoint(IPAddress.Parse("192.168.0.10"), 14000));
 
-            SlimIOCP.Win32.IncomingMessage message;
-            SlimIOCP.Win32.OutgoingMessage outgoingMessage;
+            SlimIOCP.Mono.IncomingMessage message;
+            SlimIOCP.Mono.OutgoingMessage outgoingMessage;
 
             while (true)
             {
 
                 while (server.TryGetMessage(out message))
                 {
-                    var connection = (Connection)message.Connection;
+                    var connection = (SlimIOCP.Mono.Connection)message.Connection;
 
                     if (!connection.TryCreateMessage(out outgoingMessage))
                     {

@@ -8,6 +8,11 @@ namespace SlimIOCP.Mono
 {
     public class Client : Peer, IClient
     {
+        public List<Connection> AllConnections
+        {
+            get { return Connections; }
+        }
+
         public bool IsConnected
         {
             get;
@@ -16,9 +21,18 @@ namespace SlimIOCP.Mono
 
         public void Connect(IPEndPoint endPoint)
         {
+            Socket = null;
+
             InitSocket(endPoint);
             Socket.Connect(endPoint);
             IsConnected = true;
+
+            var connection = new Connection(this);
+            connection.Socket = Socket;
+
+            Receive(connection);
+
+            Connections.Add(connection);
         }
     }
 }

@@ -10,40 +10,43 @@ namespace SlimIOCP.Mono
           INetworkBuffer<OutgoingMessage, Connection>,
           IMessageBuffer<IncomingMessage, OutgoingMessage, Connection>
     {
+        internal Connection MonoConnection;
+
         internal override void Reset()
         {
-            throw new NotImplementedException();
+            MonoConnection = null;
         }
 
         internal override void Destroy()
         {
-            throw new NotImplementedException();
+            Reset();
         }
 
         internal override void BufferAssigned()
         {
-            throw new NotImplementedException();
+
         }
 
         public int BytesTransferred
         {
-            get { throw new NotImplementedException(); }
+            get;
+            internal set;
         }
 
         public Connection Connection
         {
-            get { throw new NotImplementedException(); }
+            get { return MonoConnection; }
         }
 
         public IncomingMessage CurrentMessage
         {
             get
             {
-                throw new NotImplementedException();
+                return MonoConnection.Message;
             }
             set
             {
-                throw new NotImplementedException();
+                MonoConnection.Message = value;
             }
         }
     }

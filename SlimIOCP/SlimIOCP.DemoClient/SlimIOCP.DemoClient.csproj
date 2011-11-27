@@ -83,6 +83,10 @@
     <None Include="app.config" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SlimIOCP.Mono\SlimIOCP.Mono.csproj">
+      <Project>{76B69E3D-61DA-40C1-832D-211E7528D700}</Project>
+      <Name>SlimIOCP.Mono</Name>
+    </ProjectReference>
     <ProjectReference Include="..\SlimIOCP.Shared\SlimIOCP.Shared.csproj">
       <Project>{A5C0A60B-D404-4D2C-9525-3299C65148F8}</Project>
       <Name>SlimIOCP.Shared</Name>

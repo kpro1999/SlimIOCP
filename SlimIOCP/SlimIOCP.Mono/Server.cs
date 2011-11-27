@@ -15,7 +15,38 @@ namespace SlimIOCP.Mono
 
         public void Start(IPEndPoint endPoint)
         {
-            throw new NotImplementedException();
+            InitSocket(endPoint);
+
+            Socket.Bind(endPoint);
+            Socket.Listen(100);
+
+            Accept();
+        }
+
+        void Accept()
+        {
+            Socket.BeginAccept(AcceptDone, null);
+        }
+
+        void AcceptDone(IAsyncResult result)
+        {
+            var clientSocket = Socket.EndAccept(result);
+
+            Connection connection;
+
+            if (ConnectionPool.TryPop(out connection))
+            {
+                Connections.Add(connection);
+                connection.Socket = clientSocket;
+
+                Receive(connection);
+            }
+            else
+            {
+                //TODO: Error
+            }
+
+            Accept();
         }
     }
 }
