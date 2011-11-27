@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Net;
 using SlimIOCP.Win32;
+using System.Threading;
 
 namespace SlimIOCP.DemoServer
 {
@@ -31,8 +32,10 @@ Suspendisse eu erat nec dui blandit placerat id eu sem. Ut porta orci vitae augu
 
             while (true)
             {
+
                 while (server.TryGetMessage(out message))
                 {
+                    var o = message.Tag;
                     var connection = (Connection)message.Tag;
 
                     if (!connection.TryCreateMessage(out outgoingMessage))

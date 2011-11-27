@@ -34,6 +34,7 @@ namespace SlimIOCP
         long messagesProcessed;
         DateTime timeStart = DateTime.Now;
         DateTime lastDisplayTime = DateTime.Now;
+        List<int> isNullLog = new List<int>();
 #endif
         readonly BasePeer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage> peer;
 
@@ -109,6 +110,9 @@ namespace SlimIOCP
                             {
                                 buffer.CurrentMessage = message;
                             }
+
+                            // Since we are done with the message, clear our local copy also
+                            message = null;
                         }
 
                         if (!peer.IncomingBufferPool.TryPush(buffer))

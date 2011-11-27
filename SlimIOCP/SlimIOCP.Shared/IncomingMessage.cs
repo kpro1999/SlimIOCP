@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 namespace SlimIOCP
 {
@@ -10,7 +11,7 @@ namespace SlimIOCP
         public int Length { get; internal set; }
         public int Offset { get { return BufferOffset; } }
         public byte[] Data { get { return BufferHandle; } }
-        public object Tag { get; internal set; }
+        public object Tag;
 
         internal bool IsDone;
         internal int DataBytesRead;

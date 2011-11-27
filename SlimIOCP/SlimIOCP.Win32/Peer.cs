@@ -132,7 +132,7 @@ namespace SlimIOCP.Win32
             {
                 var connection = message.Connection;
 
-                if (!OutgoingMessagePool.TryPush(message))
+                if (OutgoingMessagePool.TryPush(message))
                 {
                     //TODO: Error
                 }
