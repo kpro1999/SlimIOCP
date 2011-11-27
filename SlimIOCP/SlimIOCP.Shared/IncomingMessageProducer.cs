@@ -5,11 +5,14 @@ using System.Text;
 
 namespace SlimIOCP
 {
-    internal class IncomingMessageProducer : MessageBufferProducer<IncomingMessage>
+    internal class IncomingMessageProducer<TIncomingMessage, TOutgoingMessage, TConnection> : MessageBufferProducer<TIncomingMessage>
+        where TOutgoingMessage : BaseOutgoingMessage
+        where TConnection : BaseConnection<TOutgoingMessage>
+        where TIncomingMessage : IncomingMessage<TOutgoingMessage, TConnection>, new()
     {
-        protected override IncomingMessage Create()
+        protected override TIncomingMessage Create()
         {
-            return new IncomingMessage();
+            return new TIncomingMessage();
         }
     }
 }

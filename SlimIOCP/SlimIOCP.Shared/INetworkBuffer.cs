@@ -5,9 +5,11 @@ using System.Text;
 
 namespace SlimIOCP
 {
-    public interface INetworkBuffer
+    public interface INetworkBuffer<TOutgoingMessage, TConnection>
+        where TOutgoingMessage : BaseOutgoingMessage
+        where TConnection : BaseConnection<TOutgoingMessage>
     {
         int BytesTransferred { get; }
-        object Tag { get; }
+        TConnection Connection { get; }
     }
 }

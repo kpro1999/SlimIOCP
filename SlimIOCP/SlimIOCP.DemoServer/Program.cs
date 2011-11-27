@@ -35,8 +35,7 @@ Suspendisse eu erat nec dui blandit placerat id eu sem. Ut porta orci vitae augu
 
                 while (server.TryGetMessage(out message))
                 {
-                    var o = message.Tag;
-                    var connection = (Connection)message.Tag;
+                    var connection = (Connection)message.Connection;
 
                     if (!connection.TryCreateMessage(out outgoingMessage))
                     {

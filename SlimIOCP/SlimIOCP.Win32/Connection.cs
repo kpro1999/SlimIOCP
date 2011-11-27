@@ -7,26 +7,21 @@ using System.Threading;
 
 namespace SlimIOCP.Win32
 {
-    public class Connection
+    public class Connection : BaseConnection<OutgoingMessage>
     {
-        internal bool Sending;
-        internal Socket Socket;
         internal IncomingMessage Message;
-
         internal readonly Peer Peer;
-        internal readonly Queue<OutgoingMessage> SendQueue;
 
         internal Connection(Peer peer)
         {
             Peer = peer;
-            SendQueue = new Queue<OutgoingMessage>();
         }
 
-        public bool TryCreateMessage(out OutgoingMessage message)
+        public override bool TryCreateMessage(out OutgoingMessage message)
         {
             if (Peer.OutgoingMessagePool.TryPop(out message))
             {
-                message.Connection = this;
+                message.Win32Connection = this;
                 return true;
             }
 

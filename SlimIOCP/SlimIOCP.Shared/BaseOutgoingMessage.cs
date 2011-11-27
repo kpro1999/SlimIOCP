@@ -28,7 +28,7 @@ namespace SlimIOCP
             }
             else
             {
-                if (SendDataBytesRemaining == HEADER_SIZE)
+                if (SendDataBytesRemaining == Constants.HEADER_SIZE)
                 {
                     // Calculate total message data
                     SendDataBytesRemaining += length;
@@ -55,7 +55,7 @@ namespace SlimIOCP
             SendDataBuffer = null;
             SendDataOffset = 0;
             SendDataBytesSent = 0;
-            SendDataBytesRemaining = HEADER_SIZE;
+            SendDataBytesRemaining = Constants.HEADER_SIZE;
         }
 
         internal override void Destroy()

@@ -6,9 +6,9 @@ using System.Net.Sockets;
 
 namespace SlimIOCP.Win32
 {
-    public class OutgoingMessage : BaseOutgoingMessage, INetworkBuffer
+    public class OutgoingMessage : BaseOutgoingMessage, INetworkBuffer<OutgoingMessage, Connection>
     {
-        internal Connection Connection;
+        internal Connection Win32Connection;
 
         internal readonly Peer Peer;
         internal readonly SocketAsyncEventArgs AsyncArgs;
@@ -18,9 +18,9 @@ namespace SlimIOCP.Win32
             get { return AsyncArgs.BytesTransferred; }
         }
 
-        public object Tag
+        public Connection Connection
         {
-            get { return Connection; }
+            get { return Win32Connection; }
         }
 
         internal OutgoingMessage(Peer peer, SocketAsyncEventArgs asyncArgs)
@@ -32,14 +32,14 @@ namespace SlimIOCP.Win32
         internal override void Destroy()
         {
             base.Destroy();
-            Connection = null;
+            Win32Connection = null;
             AsyncArgs.SetBuffer(null, 0, 0);
         }
 
         internal override void Reset()
         {
             base.Reset();
-            Connection = null;
+            Win32Connection = null;
             BufferAssigned();
         }
 
@@ -58,11 +58,11 @@ namespace SlimIOCP.Win32
                 BufferHandle[BufferOffset + 1] = ShortConverter.Byte1;
             }
 
-            lock (Connection)
+            lock (Win32Connection)
             {
-                if (Connection.Sending)
+                if (Win32Connection.Sending)
                 {
-                    Connection.SendQueue.Enqueue(this);
+                    Win32Connection.SendQueue.Enqueue(this);
                 }
                 else
                 {

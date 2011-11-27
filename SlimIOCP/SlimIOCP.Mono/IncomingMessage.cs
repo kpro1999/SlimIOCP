@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SlimIOCP.Mono
 {
-    public class Peer : BasePeer<IncomingBuffer, IncomingMessage, OutgoingMessage, Connection>
+    public class IncomingMessage : IncomingMessage<OutgoingMessage, Connection>
     {
 
     }

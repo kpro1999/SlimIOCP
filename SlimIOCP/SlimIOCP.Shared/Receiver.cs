@@ -19,14 +19,16 @@ namespace SlimIOCP
     }*/
 
     internal class Receiver<
-            TIncomingBuffer, 
-            TIncomingMessage, 
-            TOutgoingMessage
+            TIncomingBuffer,
+            TIncomingMessage,
+            TOutgoingMessage,
+            TConnection
         >
 
-        where TIncomingBuffer : MessageBuffer, INetworkBuffer, IMessageBuffer<TIncomingMessage>
-        where TIncomingMessage : IncomingMessage
-        where TOutgoingMessage : MessageBuffer, INetworkBuffer
+        where TIncomingBuffer : MessageBuffer, INetworkBuffer<TOutgoingMessage, TConnection>, IMessageBuffer<TIncomingMessage, TOutgoingMessage, TConnection>
+        where TIncomingMessage : IncomingMessage<TOutgoingMessage, TConnection>
+        where TOutgoingMessage : BaseOutgoingMessage, INetworkBuffer<TOutgoingMessage, TConnection>
+        where TConnection : BaseConnection<TOutgoingMessage>
 
     {
 #if DEBUG
@@ -36,16 +38,16 @@ namespace SlimIOCP
         DateTime lastDisplayTime = DateTime.Now;
         List<int> isNullLog = new List<int>();
 #endif
-        readonly BasePeer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage> peer;
+        readonly BasePeer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage, TConnection> peer;
 
-        internal Receiver(BasePeer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage> basePeer)
+        internal Receiver(BasePeer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage, TConnection> basePeer)
         {
             peer = basePeer;
         }
 
         internal void Start(object threadState)
         {
-            Console.WriteLine("Receiver thread started");
+            Console.WriteLine("[Started] " + Thread.CurrentThread.Name);
             ReceiveLoop();
         }
 
@@ -92,7 +94,7 @@ namespace SlimIOCP
 
                             if (message.IsDone)
                             {
-                                message.Tag = buffer.Tag;
+                                message.Connection = buffer.Connection;
 
                                 // Queue into received messages
                                 lock (peer.ReceivedMessages)
@@ -158,7 +160,7 @@ namespace SlimIOCP
             Interlocked.Increment(ref messagesProcessed);
 #endif
 
-            if (message.HeaderBytesRead < IncomingMessage.HEADER_SIZE)
+            if (message.HeaderBytesRead < Constants.HEADER_SIZE)
             {
                 if (length > 1)
                 {

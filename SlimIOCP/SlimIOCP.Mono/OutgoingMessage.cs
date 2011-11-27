@@ -5,14 +5,14 @@ using System.Text;
 
 namespace SlimIOCP.Mono
 {
-    public class OutgoingMessage : BaseOutgoingMessage, INetworkBuffer
+    public class OutgoingMessage : BaseOutgoingMessage, INetworkBuffer<OutgoingMessage, Connection>
     {
         public int BytesTransferred
         {
             get { throw new NotImplementedException(); }
         }
 
-        public object Tag
+        public Connection Connection
         {
             get { throw new NotImplementedException(); }
         }

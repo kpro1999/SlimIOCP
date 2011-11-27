@@ -9,66 +9,18 @@ using System.Net;
 namespace SlimIOCP
 {
     public abstract class BasePeer<
-            TIncomingBuffer, 
-            TIncomingMessage, 
-            TOutgoingMessage
-        
-            /*, 
-            TIncomingBufferProducer,
-            TIncomingMessageProducer,
-            TOutgoingMessageProducer
-            */
+            TIncomingBuffer,
+            TIncomingMessage,
+            TOutgoingMessage,
+            TConnection
         >
 
-        where TIncomingBuffer : MessageBuffer, INetworkBuffer, IMessageBuffer<TIncomingMessage>
-        where TIncomingMessage : IncomingMessage
-        where TOutgoingMessage : MessageBuffer, INetworkBuffer
-
-        /*
-        where TIncomingBufferProducer : MessageBufferProducer<TIncomingBuffer>, new()
-        where TIncomingMessageProducer : MessageBufferProducer<TIncomingMessage>, new()
-        where TOutgoingMessageProducer : MessageBufferProducer<TOutgoingMessage>, new()
-        */
+        where TIncomingBuffer : MessageBuffer, INetworkBuffer<TOutgoingMessage, TConnection>, 
+                                IMessageBuffer<TIncomingMessage, TOutgoingMessage, TConnection>
+        where TIncomingMessage : IncomingMessage<TOutgoingMessage, TConnection>
+        where TOutgoingMessage : BaseOutgoingMessage, INetworkBuffer<TOutgoingMessage, TConnection>
+        where TConnection : BaseConnection<TOutgoingMessage>
     {
-        /*
-        public class Connection : BaseConnection
-        {
-            internal bool Sending;
-            internal Socket Socket;
-            internal TIncomingMessage Message;
-
-            internal readonly BasePeer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage> Peer;
-            internal readonly Queue<TIncomingMessage> ReceiveQueue;
-            internal readonly Queue<TOutgoingMessage> SendQueue;
-
-            internal Connection(BasePeer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage> peer)
-            {
-                Peer = peer;
-                SendQueue = new Queue<TOutgoingMessage>();
-                ReceiveQueue = new Queue<TIncomingMessage>();
-            }
-
-            public bool TryCreateMessage(out TOutgoingMessage message)
-            {
-                if (Peer.OutgoingMessagePool.TryPop(out message))
-                {
-                    message.Connection = this;
-                    return true;
-                }
-
-                message = null;
-                return false;
-            }
-
-            internal virtual void Reset()
-            {
-                Socket = null;
-                Sending = false;
-                Message = null;
-            }
-        }
-        */
-
         static internal int ReceiverThreadIdCounter = -1;
 
         internal MessageBufferPool<TIncomingBuffer> IncomingBufferPool;
@@ -81,12 +33,11 @@ namespace SlimIOCP
         internal readonly Queue<TIncomingMessage> ReceivedMessages;
 
         internal Socket Socket;
-        internal Thread ReceiverThread;
-        internal Receiver<TIncomingBuffer, TIncomingMessage, TOutgoingMessage> Receiver;
-
+        internal readonly Receiver<TIncomingBuffer, TIncomingMessage, TOutgoingMessage, TConnection> Receiver;
+        internal readonly Thread ReceiverThread;
         internal readonly ManualResetEvent ReceiverEvent;
-
         public readonly ManualResetEvent ReceivedMessageEvent;
+
         public IPEndPoint EndPoint { get; private set; }
 
         public BasePeer()
@@ -94,7 +45,8 @@ namespace SlimIOCP
             ReceiverEvent = new ManualResetEvent(true);
             ReceivedMessageEvent = new ManualResetEvent(false);
             ReceivedMessages = new Queue<TIncomingMessage>();
-            Receiver = new Receiver<TIncomingBuffer, TIncomingMessage, TOutgoingMessage>(this);
+            Receiver = new Receiver<TIncomingBuffer, TIncomingMessage, TOutgoingMessage, TConnection>(this);
+            ReceiverThread = new Thread(Receiver.Start);
 
             IncomingBufferQueue = new Queue<TIncomingBuffer>();
             IncomingBufferQueuePool = new QueuePool<TIncomingBuffer>(32);
@@ -127,16 +79,11 @@ namespace SlimIOCP
 
         internal void StartReceiver()
         {
-            if (ReceiverThread == null)
+            if (!ReceiverThread.IsAlive)
             {
-                ReceiverThread = new Thread(Receiver.Start);
                 ReceiverThread.IsBackground = true;
                 ReceiverThread.Name = "SlimIOCP Receiver Thread #" + Interlocked.Increment(ref ReceiverThreadIdCounter);
                 ReceiverThread.Start();
-            }
-            else
-            {
-                //TODO: Error
             }
         }
 

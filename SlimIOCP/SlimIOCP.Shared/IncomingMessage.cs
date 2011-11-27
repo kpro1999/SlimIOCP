@@ -6,18 +6,21 @@ using System.Threading;
 
 namespace SlimIOCP
 {
-    public class IncomingMessage : MessageBuffer
+    public class IncomingMessage<TOutgoingMessage, TConnection> : MessageBuffer
+        where TOutgoingMessage : BaseOutgoingMessage
+        where TConnection : BaseConnection<TOutgoingMessage>
     {
         public int Length { get; internal set; }
         public int Offset { get { return BufferOffset; } }
-        public byte[] Data { get { return BufferHandle; } }
-        public object Tag;
+        public byte[] Buffer { get { return BufferHandle; } }
+        public TConnection Connection { get; internal set; }
+        public MessageType MessageType { get { return Type; } }
 
+        internal MessageType Type;
         internal bool IsDone;
         internal int DataBytesRead;
         internal int DataBytesRemaining;
         internal byte HeaderBytesRead;
-
         internal IncomingMessageHeader Header;
 
         internal IncomingMessage()
@@ -28,12 +31,12 @@ namespace SlimIOCP
         internal override void Reset()
         {
             Length = 0;
+            Connection = null;
             IsDone = false;
             DataBytesRead = 0;
             DataBytesRemaining = 0;
             HeaderBytesRead = 0;
             Header.Size = 0;
-            Tag = null;
         }
 
         internal override void Destroy()

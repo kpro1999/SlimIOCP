@@ -68,6 +68,7 @@
     <Compile Include="IncomingBufferProducer.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Include="IncomingMessage.cs" />
     <Compile Include="OutgoingMessage.cs">
       <SubType>Code</SubType>
     </Compile>

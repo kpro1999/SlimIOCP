@@ -6,9 +6,12 @@ using System.Net.Sockets;
 
 namespace SlimIOCP.Win32
 {
-    public class IncomingBuffer : MessageBuffer, INetworkBuffer, IMessageBuffer<IncomingMessage>
+    public class IncomingBuffer : 
+        MessageBuffer, 
+        INetworkBuffer<OutgoingMessage, Connection>, 
+        IMessageBuffer<IncomingMessage, OutgoingMessage, Connection>
     {
-        internal Connection Connection;
+        internal Connection Win32Connection;
         internal readonly SocketAsyncEventArgs AsyncArgs;
 
         public int BytesTransferred
@@ -16,9 +19,9 @@ namespace SlimIOCP.Win32
             get { return AsyncArgs.BytesTransferred; }
         }
 
-        public object Tag
+        public Connection Connection
         {
-            get { return Connection; }
+            get { return Win32Connection; }
         }
 
         internal IncomingBuffer(SocketAsyncEventArgs asyncArgs)
@@ -28,12 +31,12 @@ namespace SlimIOCP.Win32
 
         internal override void Reset()
         {
-            Connection = null;
+            Win32Connection = null;
         }
 
         internal override void Destroy()
         {
-            Connection = null;
+            Win32Connection = null;
             AsyncArgs.SetBuffer(null, 0, 0);
         }
 
@@ -46,11 +49,11 @@ namespace SlimIOCP.Win32
         {
             get
             {
-                return Connection.Message;
+                return Win32Connection.Message;
             }
             set
             {
-                Connection.Message = value;
+                Win32Connection.Message = value;
             }
         }
     }

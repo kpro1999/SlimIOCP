@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace SlimIOCP.Win32
 {
-    public class Peer : BasePeer<IncomingBuffer, IncomingMessage, OutgoingMessage>
+    public class Peer : BasePeer<IncomingBuffer, IncomingMessage, OutgoingMessage, Connection>
     {
         internal readonly List<Connection> Connections;
         internal readonly ConnectionPool ConnectionPool;
@@ -17,7 +17,7 @@ namespace SlimIOCP.Win32
             : base()
         {
             IncomingBufferPool = new MessageBufferPool<IncomingBuffer>(new IncomingBufferProducer(this));
-            IncomingMessagePool = new MessageBufferPool<IncomingMessage>(new IncomingMessageProducer());
+            IncomingMessagePool = new MessageBufferPool<IncomingMessage>(new IncomingMessageProducer<IncomingMessage, OutgoingMessage, Connection>());
             OutgoingMessagePool = new MessageBufferPool<OutgoingMessage>(new OutgoingMessageProducer(this));
             Connections = new List<Connection>();
             ConnectionPool = new ConnectionPool(this, 1024);
@@ -47,7 +47,7 @@ namespace SlimIOCP.Win32
 
             if (IncomingBufferPool.TryPop(out buffer))
             {
-                buffer.Connection = connection;
+                buffer.Win32Connection = connection;
 
                 var isDone = !connection.Socket.ReceiveAsync(buffer.AsyncArgs);
                 if (isDone)
@@ -63,15 +63,15 @@ namespace SlimIOCP.Win32
 
         internal void Send(OutgoingMessage message)
         {
-            if (message.Connection.Sending)
+            if (message.Win32Connection.Sending)
             {
                 //TODO: Error
             }
             else
             {
-                lock (message.Connection)
+                lock (message.Win32Connection)
                 {
-                    message.Connection.Sending = true;
+                    message.Win32Connection.Sending = true;
                 }
             }
 
@@ -88,7 +88,7 @@ namespace SlimIOCP.Win32
                 System.Buffer.BlockCopy(message.SendDataBuffer, dataOffset, message.BufferHandle, message.BufferOffset, sendLength);
             }
 
-            var isDone = !message.Connection.Socket.SendAsync(message.AsyncArgs);
+            var isDone = !message.Win32Connection.Socket.SendAsync(message.AsyncArgs);
             if (isDone)
             {
                 OnSendComplete(message);
@@ -103,7 +103,7 @@ namespace SlimIOCP.Win32
                 return;
             }
 
-            var connection = buffer.Connection;
+            var connection = buffer.Win32Connection;
 
             lock (IncomingBufferQueueSync)
             {
@@ -130,7 +130,7 @@ namespace SlimIOCP.Win32
             }
             else
             {
-                var connection = message.Connection;
+                var connection = message.Win32Connection;
 
                 if (OutgoingMessagePool.TryPush(message))
                 {

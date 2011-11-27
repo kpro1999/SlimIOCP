@@ -5,14 +5,32 @@ using System.Text;
 
 namespace SlimIOCP.Mono
 {
-    public class IncomingBuffer : MessageBuffer, INetworkBuffer, IMessageBuffer<IncomingMessage>
+    public class IncomingBuffer :
+          MessageBuffer,
+          INetworkBuffer<OutgoingMessage, Connection>,
+          IMessageBuffer<IncomingMessage, OutgoingMessage, Connection>
     {
+        internal override void Reset()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override void Destroy()
+        {
+            throw new NotImplementedException();
+        }
+
+        internal override void BufferAssigned()
+        {
+            throw new NotImplementedException();
+        }
+
         public int BytesTransferred
         {
             get { throw new NotImplementedException(); }
         }
 
-        public object Tag
+        public Connection Connection
         {
             get { throw new NotImplementedException(); }
         }
@@ -27,21 +45,6 @@ namespace SlimIOCP.Mono
             {
                 throw new NotImplementedException();
             }
-        }
-
-        internal override void Reset()
-        {
-            throw new NotImplementedException();
-        }
-
-        internal override void Destroy()
-        {
-            throw new NotImplementedException();
-        }
-
-        internal override void BufferAssigned()
-        {
-            throw new NotImplementedException();
         }
     }
 }
