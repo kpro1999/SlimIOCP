@@ -8,7 +8,7 @@ using System.Net;
 
 namespace SlimIOCP
 {
-    public abstract class BasePeer<
+    public abstract class Peer<
             TIncomingBuffer,
             TIncomingMessage,
             TOutgoingMessage,
@@ -18,8 +18,8 @@ namespace SlimIOCP
         where TIncomingBuffer : MessageBuffer, INetworkBuffer<TOutgoingMessage, TConnection>, 
                                 IMessageBuffer<TIncomingMessage, TOutgoingMessage, TConnection>
         where TIncomingMessage : IncomingMessage<TOutgoingMessage, TConnection>
-        where TOutgoingMessage : BaseOutgoingMessage, INetworkBuffer<TOutgoingMessage, TConnection>
-        where TConnection : BaseConnection<TOutgoingMessage>
+        where TOutgoingMessage : OutgoingMessage, INetworkBuffer<TOutgoingMessage, TConnection>
+        where TConnection : Connection<TOutgoingMessage>
     {
         static internal int ReceiverThreadIdCounter = -1;
 
@@ -40,7 +40,7 @@ namespace SlimIOCP
 
         public IPEndPoint EndPoint { get; private set; }
 
-        public BasePeer()
+        public Peer()
         {
             ReceiverEvent = new ManualResetEvent(true);
             ReceivedMessageEvent = new ManualResetEvent(false);

@@ -7,8 +7,8 @@ namespace SlimIOCP
 {
     public interface IMessageBuffer<TIncomingMessage, TOutgoingMessage, TConnection>
         where TIncomingMessage : IncomingMessage<TOutgoingMessage, TConnection>
-        where TOutgoingMessage : BaseOutgoingMessage
-        where TConnection : BaseConnection<TOutgoingMessage>
+        where TOutgoingMessage : OutgoingMessage
+        where TConnection : Connection<TOutgoingMessage>
     {
         TIncomingMessage CurrentMessage { get; set; }
     }

@@ -94,8 +94,8 @@ namespace SlimIOCP.DemoClient
 
             while (true)
             {
-                OutgoingMessage outgoingMessage;
-                IncomingMessage incommingMessage;
+                SlimIOCP.Win32.OutgoingMessage outgoingMessage;
+                SlimIOCP.Win32.IncomingMessage incommingMessage;
 
                 foreach (var client in clients)
                 {

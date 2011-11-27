@@ -6,13 +6,15 @@ using System.Text;
 namespace SlimIOCP
 {
     internal class IncomingMessageProducer<TIncomingMessage, TOutgoingMessage, TConnection> : MessageBufferProducer<TIncomingMessage>
-        where TOutgoingMessage : BaseOutgoingMessage
-        where TConnection : BaseConnection<TOutgoingMessage>
+        where TOutgoingMessage : OutgoingMessage
+        where TConnection : Connection<TOutgoingMessage>
         where TIncomingMessage : IncomingMessage<TOutgoingMessage, TConnection>, new()
     {
         protected override TIncomingMessage Create()
         {
-            return new TIncomingMessage();
+            var message = new TIncomingMessage();
+            message.Type = MessageType.Data;
+            return message;
         }
     }
 }

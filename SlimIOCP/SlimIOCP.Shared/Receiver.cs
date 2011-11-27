@@ -27,8 +27,8 @@ namespace SlimIOCP
 
         where TIncomingBuffer : MessageBuffer, INetworkBuffer<TOutgoingMessage, TConnection>, IMessageBuffer<TIncomingMessage, TOutgoingMessage, TConnection>
         where TIncomingMessage : IncomingMessage<TOutgoingMessage, TConnection>
-        where TOutgoingMessage : BaseOutgoingMessage, INetworkBuffer<TOutgoingMessage, TConnection>
-        where TConnection : BaseConnection<TOutgoingMessage>
+        where TOutgoingMessage : OutgoingMessage, INetworkBuffer<TOutgoingMessage, TConnection>
+        where TConnection : Connection<TOutgoingMessage>
 
     {
 #if DEBUG
@@ -38,9 +38,9 @@ namespace SlimIOCP
         DateTime lastDisplayTime = DateTime.Now;
         List<int> isNullLog = new List<int>();
 #endif
-        readonly BasePeer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage, TConnection> peer;
+        readonly Peer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage, TConnection> peer;
 
-        internal Receiver(BasePeer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage, TConnection> basePeer)
+        internal Receiver(Peer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage, TConnection> basePeer)
         {
             peer = basePeer;
         }

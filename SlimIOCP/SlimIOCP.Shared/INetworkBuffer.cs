@@ -6,8 +6,8 @@ using System.Text;
 namespace SlimIOCP
 {
     public interface INetworkBuffer<TOutgoingMessage, TConnection>
-        where TOutgoingMessage : BaseOutgoingMessage
-        where TConnection : BaseConnection<TOutgoingMessage>
+        where TOutgoingMessage : OutgoingMessage
+        where TConnection : Connection<TOutgoingMessage>
     {
         int BytesTransferred { get; }
         TConnection Connection { get; }

@@ -27,8 +27,8 @@ Suspendisse eu erat nec dui blandit placerat id eu sem. Ut porta orci vitae augu
             var server = new SlimIOCP.Win32.Server();
             server.Start(new IPEndPoint(IPAddress.Parse("192.168.0.10"), 14000));
 
-            IncomingMessage message;
-            OutgoingMessage outgoingMessage;
+            SlimIOCP.Win32.IncomingMessage message;
+            SlimIOCP.Win32.OutgoingMessage outgoingMessage;
 
             while (true)
             {

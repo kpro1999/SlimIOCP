@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SlimIOCP.Mono
 {
-    public class OutgoingMessage : BaseOutgoingMessage, INetworkBuffer<OutgoingMessage, Connection>
+    public class OutgoingMessage : SlimIOCP.OutgoingMessage, INetworkBuffer<OutgoingMessage, Connection>
     {
         public int BytesTransferred
         {

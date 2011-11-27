@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SlimIOCP.Mono
 {
-    public class Connection : BaseConnection<OutgoingMessage>
+    public class Connection : Connection<OutgoingMessage>
     {
         public override bool TryCreateMessage(out OutgoingMessage message)
         {

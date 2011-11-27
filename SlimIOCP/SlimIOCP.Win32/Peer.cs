@@ -8,7 +8,7 @@ using System.Threading;
 
 namespace SlimIOCP.Win32
 {
-    public class Peer : BasePeer<IncomingBuffer, IncomingMessage, OutgoingMessage, Connection>
+    public class Peer : Peer<IncomingBuffer, IncomingMessage, OutgoingMessage, Connection>
     {
         internal readonly List<Connection> Connections;
         internal readonly ConnectionPool ConnectionPool;

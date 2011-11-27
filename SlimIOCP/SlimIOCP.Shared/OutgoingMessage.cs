@@ -5,7 +5,7 @@ using System.Text;
 
 namespace SlimIOCP
 {
-    public abstract class BaseOutgoingMessage : MessageBuffer
+    public abstract class OutgoingMessage : MessageBuffer
     {
         internal byte[] SendDataBuffer;
         internal int SendDataOffset;

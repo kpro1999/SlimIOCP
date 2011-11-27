@@ -7,10 +7,10 @@ using System.Threading;
 
 namespace SlimIOCP.Win32
 {
-    public class Connection : BaseConnection<OutgoingMessage>
+    public class Connection : Connection<OutgoingMessage>
     {
-        internal IncomingMessage Message;
         internal readonly Peer Peer;
+        internal IncomingMessage Message;
 
         internal Connection(Peer peer)
         {

@@ -6,10 +6,9 @@ using System.Net.Sockets;
 
 namespace SlimIOCP.Win32
 {
-    public class OutgoingMessage : BaseOutgoingMessage, INetworkBuffer<OutgoingMessage, Connection>
+    public class OutgoingMessage : SlimIOCP.OutgoingMessage, INetworkBuffer<OutgoingMessage, Connection>
     {
         internal Connection Win32Connection;
-
         internal readonly Peer Peer;
         internal readonly SocketAsyncEventArgs AsyncArgs;
 

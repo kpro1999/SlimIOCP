@@ -46,8 +46,8 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="BaseConnection.cs" />
-    <Compile Include="BasePeer.cs" />
+    <Compile Include="Connection.cs" />
+    <Compile Include="Peer.cs" />
     <Compile Include="Buffer.cs" />
     <Compile Include="BufferManager.cs" />
     <Compile Include="Constants.cs" />
@@ -59,7 +59,7 @@
     <Compile Include="IServer.cs" />
     <Compile Include="MessageBuffer.cs" />
     <Compile Include="MessageBufferPool.cs" />
-    <Compile Include="BaseOutgoingMessage.cs" />
+    <Compile Include="OutgoingMessage.cs" />
     <Compile Include="MessageBufferProducer.cs" />
     <Compile Include="MessageType.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

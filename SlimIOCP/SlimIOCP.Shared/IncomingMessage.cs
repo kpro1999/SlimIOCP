@@ -6,9 +6,9 @@ using System.Threading;
 
 namespace SlimIOCP
 {
-    public class IncomingMessage<TOutgoingMessage, TConnection> : MessageBuffer
-        where TOutgoingMessage : BaseOutgoingMessage
-        where TConnection : BaseConnection<TOutgoingMessage>
+    public abstract class IncomingMessage<TOutgoingMessage, TConnection> : MessageBuffer
+        where TOutgoingMessage : OutgoingMessage
+        where TConnection : Connection<TOutgoingMessage>
     {
         public int Length { get; internal set; }
         public int Offset { get { return BufferOffset; } }

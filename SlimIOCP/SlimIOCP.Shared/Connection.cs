@@ -6,13 +6,13 @@ using System.Net.Sockets;
 
 namespace SlimIOCP
 {
-    public abstract class BaseConnection<T> where T : BaseOutgoingMessage
+    public abstract class Connection<T> where T : OutgoingMessage
     {
         internal bool Sending;
         internal Socket Socket;
         internal readonly Queue<T> SendQueue;
 
-        internal BaseConnection()
+        internal Connection()
         {
             SendQueue = new Queue<T>();
         }
