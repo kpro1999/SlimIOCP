@@ -13,6 +13,8 @@ namespace SlimIOCP
         internal int SendDataBytesRemaining;
         internal ShortConverter ShortConverter;
 
+        public int DataBytesRemaining { get { return SendDataBytesRemaining - Constants.HEADER_SIZE; } }
+
         public bool TryWrite(byte[] data)
         {
             return TryWrite(data, 0, data.Length);

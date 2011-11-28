@@ -11,7 +11,7 @@ namespace SlimIOCP
     {
         public object Tag;
 
-        public EndPoint EndPoint { get { return Socket.RemoteEndPoint; } }
+        public IPEndPoint RemoteEndPoint { get { return (IPEndPoint)Socket.RemoteEndPoint; } }
 
         internal bool Sending;
         internal Socket Socket;
