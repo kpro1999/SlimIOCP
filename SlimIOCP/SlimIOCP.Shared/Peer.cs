@@ -34,8 +34,9 @@ namespace SlimIOCP
         internal readonly Queue<TIncomingMessage> ReceivedMessages;
 
         internal Socket Socket;
+        internal Thread ReceiverThread;
+
         internal readonly Receiver<TIncomingBuffer, TIncomingMessage, TOutgoingMessage, TConnection> Receiver;
-        internal readonly Thread ReceiverThread;
         internal readonly ManualResetEvent ReceiverEvent;
         public readonly ManualResetEvent ReceivedMessageEvent;
 
@@ -88,7 +89,7 @@ namespace SlimIOCP
             return false;
         }
 
-        internal void TryPushMessage(TIncomingMessage message)
+        internal void PushMessage(TIncomingMessage message)
         {
             lock (ReceivedMessages)
             {
@@ -100,9 +101,14 @@ namespace SlimIOCP
         {
             if (!ReceiverThread.IsAlive)
             {
+                ReceiverThread = new Thread(Receiver.Start);
                 ReceiverThread.IsBackground = true;
                 ReceiverThread.Name = "SlimIOCP Receiver Thread #" + Interlocked.Increment(ref ReceiverThreadIdCounter);
                 ReceiverThread.Start();
+            }
+            else
+            {
+                Log.Info("Thread already running");
             }
         }
 
@@ -120,6 +126,18 @@ namespace SlimIOCP
             else
             {
                 //TODO: Error
+            }
+        }
+
+        protected void ShutdownSocket(Socket socket)
+        {
+            try
+            {
+                socket.Shutdown(SocketShutdown.Both);
+            }
+            catch (SocketException)
+            {
+
             }
         }
 

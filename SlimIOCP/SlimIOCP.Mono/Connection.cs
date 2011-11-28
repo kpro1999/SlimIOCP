@@ -32,6 +32,7 @@ namespace SlimIOCP.Mono
             Socket = null;
             Sending = false;
             Message = null;
+            Connected = false;
         }
     }
 }

@@ -63,7 +63,7 @@ namespace SlimIOCP.Win32
 
                 Receive(connection);
 
-                TryPushMessage(MetaMessagePool.Pop(MessageType.Connected, connection));
+                PushMessage(MetaMessagePool.Pop(MessageType.Connected, connection));
             }
             else
             {

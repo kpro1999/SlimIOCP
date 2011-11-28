@@ -2,10 +2,11 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Net.Sockets;
 
 namespace SlimIOCP.Mono
 {
-    public class Peer : Peer<IncomingBuffer, IncomingMessage, OutgoingMessage, Connection>
+    public abstract class Peer : Peer<IncomingBuffer, IncomingMessage, OutgoingMessage, Connection>
     {
         internal readonly List<Connection> Connections;
         internal readonly ConnectionPool ConnectionPool;
@@ -21,15 +22,17 @@ namespace SlimIOCP.Mono
 
         internal void Send(OutgoingMessage message)
         {
-            if (message.MonoConnection.Sending)
+            var connection = message.MonoConnection;
+
+            if (connection.Sending)
             {
                 //TODO: Error
             }
             else
             {
-                lock (message.MonoConnection)
+                lock (connection)
                 {
-                    message.MonoConnection.Sending = true;
+                    connection.Sending = true;
                 }
             }
 
@@ -38,32 +41,75 @@ namespace SlimIOCP.Mono
                 message.SendDataBuffer = message.BufferHandle;
             }
 
-            message.MonoConnection.Socket.BeginSend(
-                message.SendDataBuffer, 
-                message.SendDataOffset, 
-                message.SendDataBytesRemaining, 
-                System.Net.Sockets.SocketFlags.None, 
-                SendDone, 
-                message
-            );
+            try
+            {
+                connection.Socket.BeginSend(
+                    message.SendDataBuffer,
+                    message.SendDataOffset,
+                    message.SendDataBytesRemaining,
+                    System.Net.Sockets.SocketFlags.None,
+                    SendDone,
+                    message
+                );
+            }
+            catch (SocketException)
+            {
+                Log.Info("SocketExn");
+                Disconnect(connection);
+
+                if (!OutgoingMessagePool.TryPush(message))
+                {
+                    //TODO: Error
+                }
+            }
+            catch (NullReferenceException)
+            {
+                Log.Info("NullReferenceException");
+                // This means that socket was null (connection was already closed)
+                // We can just ignore this
+            }
         }
 
         internal void Receive(Connection connection)
         {
+            Log.Info("Receive - Start");
+
+#if DEBUG
+            if (connection == null)
+            {
+                throw new ArgumentNullException("connection");
+            }
+
+#endif
             IncomingBuffer buffer;
 
             if (IncomingBufferPool.TryPop(out buffer))
             {
                 buffer.MonoConnection = connection;
 
-                connection.Socket.BeginReceive(
-                    buffer.BufferHandle, 
-                    buffer.BufferOffset, 
-                    buffer.BufferSize, 
-                    System.Net.Sockets.SocketFlags.None, 
-                    ReceiveDone, 
-                    buffer
-                );
+                try
+                {
+                    connection.Socket.BeginReceive(
+                        buffer.BufferHandle,
+                        buffer.BufferOffset,
+                        buffer.BufferSize,
+                        System.Net.Sockets.SocketFlags.None,
+                        ReceiveDone,
+                        buffer
+                    );
+                }
+                catch (SocketException)
+                {
+                    Log.Info("SocketExn");
+                    Disconnect(connection);
+                    IncomingBufferPool.TryPush(buffer);
+                }
+                catch (NullReferenceException)
+                {
+                    Log.Info("NullReferenceException");
+                    // This means that socket was null (connection was already closed)
+                    // We can just ignore this
+                }
             }
             else
             {
@@ -74,34 +120,47 @@ namespace SlimIOCP.Mono
         void SendDone(IAsyncResult result)
         {
             var message = (OutgoingMessage)result.AsyncState;
-            var bytesTransferred = message.MonoConnection.Socket.EndSend(result);
+            var connection = message.MonoConnection;
 
-            message.SendDataBytesRemaining -= bytesTransferred;
-            message.SendDataBytesSent += bytesTransferred;
-
-            if (message.SendDataBytesRemaining > 0)
+            try
             {
-                Send(message);
+                var bytesTransferred = connection.Socket.EndSend(result);
+
+                message.SendDataBytesRemaining -= bytesTransferred;
+                message.SendDataBytesSent += bytesTransferred;
+
+                if (message.SendDataBytesRemaining > 0)
+                {
+                    Send(message);
+                }
+                else
+                {
+                    if (!OutgoingMessagePool.TryPush(message))
+                    {
+                        //TODO: Error
+                    }
+
+                    lock (connection)
+                    {
+                        if (connection.SendQueue.Count > 0)
+                        {
+                            Send(connection.SendQueue.Dequeue());
+                        }
+                        else
+                        {
+                            connection.Sending = false;
+                        }
+                    }
+                }
             }
-            else
+            catch (SocketException)
             {
-                var connection = message.MonoConnection;
+                Log.Info("SocketExn");
+                Disconnect(connection);
 
                 if (!OutgoingMessagePool.TryPush(message))
                 {
                     //TODO: Error
-                }
-
-                lock (connection)
-                {
-                    if (connection.SendQueue.Count > 0)
-                    {
-                        Send(connection.SendQueue.Dequeue());
-                    }
-                    else
-                    {
-                        connection.Sending = false;
-                    }
                 }
             }
         }
@@ -109,24 +168,78 @@ namespace SlimIOCP.Mono
         void ReceiveDone(IAsyncResult result)
         {
             var buffer = (IncomingBuffer)result.AsyncState;
-            var bytesTransferred = buffer.MonoConnection.Socket.EndReceive(result);
             var connection = buffer.MonoConnection;
 
-            if (bytesTransferred == 0)
+            try
             {
-                IncomingBufferPool.TryPush(buffer);
-                return;
+                var bytesTransferred = connection.Socket.EndReceive(result);
+
+#if DEBUG
+                if (bytesTransferred == 0)
+                {
+                    Disconnect(connection);
+
+                    if (!IncomingBufferPool.TryPush(buffer))
+                    {
+                        //TODO: Error
+                    }
+
+                    return;
+                }
+#endif
+
+                buffer.BytesTransferred = bytesTransferred;
+
+                lock (IncomingBufferQueueSync)
+                {
+                    IncomingBufferQueue.Enqueue(buffer);
+                }
+
+                ReceiverEvent.Set();
+                Receive(connection);
             }
-
-            buffer.BytesTransferred = bytesTransferred;
-
-            lock (IncomingBufferQueueSync)
+            catch (SocketException)
             {
-                IncomingBufferQueue.Enqueue(buffer);
-            }
+                Log.Info("SocketExn");
+                Disconnect(connection);
 
-            ReceiverEvent.Set();
-            Receive(connection);
+                if (!IncomingBufferPool.TryPush(buffer))
+                {
+                    //TODO: Error
+                }
+            }
+        }
+
+        public void Disconnect(Connection connection)
+        {
+            Log.Info("[SlimIOCP] Disconnected " + connection.RemoteEndPoint);
+
+            lock (connection)
+            {
+                if (connection.Connected)
+                {
+                    connection.Connected = false;
+                    Connections.Remove(connection);
+                    PushMessage(MetaMessagePool.Pop(MessageType.Disconnected, connection));
+                    ShutdownSocket(connection.Socket);
+                }
+            }
+        }
+
+        public void RecycleConnection(Connection connection)
+        {
+#if DEBUG
+            if (connection.Connected == true)
+            {
+                //TODO: Error
+                throw new Exception();
+            }
+#endif
+
+            if (!ConnectionPool.TryPush(connection))
+            {
+                //TODO: Error
+            }
         }
     }
 }

@@ -23,21 +23,27 @@ Suspendisse eu erat nec dui blandit placerat id eu sem. Ut porta orci vitae augu
 
         static void Main(string[] args)
         {
-            var server = new SlimIOCP.Win32.Server();
+            SlimIOCP.Log.Logger = new Action<string>(Console.WriteLine);
+
+            var server = new SlimIOCP.Mono.Server();
             server.Start(new IPEndPoint(IPAddress.Parse("192.168.0.10"), 14000));
 
-            SlimIOCP.Win32.IncomingMessage message;
-            SlimIOCP.Win32.OutgoingMessage outgoingMessage;
+            SlimIOCP.Mono.IncomingMessage message;
+            SlimIOCP.Mono.OutgoingMessage outgoingMessage;
 
             while (true)
             {
+                if (server.ConnectedClients > 0)
+                {
+                    
+                }
 
                 while (server.TryPopMessage(out message))
                 {
                     switch (message.MessageType)
                     {
                         case MessageType.Data:
-                            var connection = (SlimIOCP.Win32.Connection)message.Connection;
+                            var connection = (SlimIOCP.Mono.Connection)message.Connection;
 
                             if (!connection.TryCreateMessage(out outgoingMessage))
                             {

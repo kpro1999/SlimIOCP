@@ -38,6 +38,7 @@ namespace SlimIOCP
         DateTime lastDisplayTime = DateTime.Now;
         List<int> isNullLog = new List<int>();
 #endif
+        internal bool Running = true;
         readonly Peer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage, TConnection> peer;
 
         internal Receiver(Peer<TIncomingBuffer, TIncomingMessage, TOutgoingMessage, TConnection> basePeer)
@@ -47,15 +48,16 @@ namespace SlimIOCP
 
         internal void Start(object threadState)
         {
-            Console.WriteLine("[Started] " + Thread.CurrentThread.Name);
+            Log.Info("[SlimIOCP] Start " + Thread.CurrentThread.Name);
             ReceiveLoop();
+            Log.Info("[SlimIOCP] Shutdown " + Thread.CurrentThread.Name);
         }
 
         internal void ReceiveLoop()
         {
             Queue<TIncomingBuffer> queue = null;
 
-            while (true)
+            while (Running)
             {
                 lock (peer.IncomingBufferQueueSync)
                 {
@@ -72,7 +74,7 @@ namespace SlimIOCP
 
                 if (queue != null)
                 {
-                    while (queue.Count > 0)
+                    while (Running && queue.Count > 0)
                     {
                         var buffer = queue.Dequeue();
                         var bufferHandle = buffer.BufferHandle;

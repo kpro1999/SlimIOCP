@@ -19,6 +19,25 @@ namespace SlimIOCP.Mono
             private set;
         }
 
+        public void Disconnect(IPEndPoint endPoint)
+        {
+            foreach (var connection in Connections)
+            {
+                if (connection.RemoteEndPoint.Address.Equals(endPoint.Address) && connection.RemoteEndPoint.Port == endPoint.Port)
+                {
+                    Disconnect(connection);
+                    break;
+                }
+            }
+
+            Log.Info("Connections.Count: " + Connections.Count);
+
+            if (Connections.Count == 0)
+            {
+                Receiver.Running = false;
+            }
+        }
+
         public void Connect(IPEndPoint endPoint)
         {
             Socket = null;
@@ -29,12 +48,13 @@ namespace SlimIOCP.Mono
 
             var connection = new Connection(this);
             connection.Socket = Socket;
+            connection.Connected = true;
 
             Receive(connection);
 
             Connections.Add(connection);
 
-            TryPushMessage(MetaMessagePool.Pop(MessageType.Connected, connection));
+            PushMessage(MetaMessagePool.Pop(MessageType.Connected, connection));
         }
     }
 }

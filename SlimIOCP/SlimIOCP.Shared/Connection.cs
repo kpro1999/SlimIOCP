@@ -14,6 +14,7 @@ namespace SlimIOCP
         public IPEndPoint RemoteEndPoint { get { return (IPEndPoint)Socket.RemoteEndPoint; } }
 
         internal bool Sending;
+        internal bool Connected;
         internal Socket Socket;
         internal readonly Queue<T> SendQueue;
 

@@ -15,7 +15,10 @@ namespace SlimIOCP.DemoClient
 
         static void Main(string[] args)
         {
+            SlimIOCP.Log.Logger = new Action<string>(Console.WriteLine);
+
             var clients = new List<SlimIOCP.Mono.Client>();
+            var started = false;
 
             for (var i = 0; i < 1; ++i)
             {
@@ -34,6 +37,15 @@ namespace SlimIOCP.DemoClient
             var time = DateTime.Now;
 
             sw.Start();
+
+            restart:
+            if (started)
+            {
+                clients[0].Disconnect(new IPEndPoint(IPAddress.Parse("192.168.0.10"), 14000));
+                clients[0].Connect(new IPEndPoint(IPAddress.Parse("192.168.0.10"), 14000));
+            }
+
+            started = true;
 
             while (true)
             {
@@ -65,9 +77,6 @@ namespace SlimIOCP.DemoClient
                                 throw new Exception();
                             }
 
-                            if (sent == 4)
-                                return;
-
                             ++sent;
                         }
 
@@ -85,10 +94,11 @@ namespace SlimIOCP.DemoClient
                         }
                     }
 
-                    if ((DateTime.Now - time).Seconds > 1)
+                    if ((DateTime.Now - time).Seconds > 2)
                     {
                         time = DateTime.Now;
                         Console.WriteLine("Messages/Second Out: " + ((float)sent / ((float)sw.ElapsedMilliseconds / (float)1000)));
+                        goto restart;
                     }
                 }
 

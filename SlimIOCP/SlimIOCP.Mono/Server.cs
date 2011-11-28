@@ -10,7 +10,7 @@ namespace SlimIOCP.Mono
     {
         public int ConnectedClients
         {
-            get { throw new NotImplementedException(); }
+            get { return Connections.Count; }
         }
 
         public void Start(IPEndPoint endPoint)
@@ -19,6 +19,8 @@ namespace SlimIOCP.Mono
 
             Socket.Bind(endPoint);
             Socket.Listen(100);
+
+            Log.Info("[SlimIOCP] Listening on " + endPoint);
 
             Accept();
         }
@@ -36,12 +38,15 @@ namespace SlimIOCP.Mono
 
             if (ConnectionPool.TryPop(out connection))
             {
+                Log.Info("[SlimIOCP] Client connected from " + clientSocket.RemoteEndPoint);
+
                 Connections.Add(connection);
                 connection.Socket = clientSocket;
+                connection.Connected = true;
 
                 Receive(connection);
 
-                TryPushMessage(MetaMessagePool.Pop(MessageType.Connected, connection));
+                PushMessage(MetaMessagePool.Pop(MessageType.Connected, connection));
             }
             else
             {
