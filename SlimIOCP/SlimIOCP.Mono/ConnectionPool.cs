@@ -55,6 +55,7 @@ namespace SlimIOCP.Mono
                     if (pool.Count > 0)
                     {
                         connection = pool.Pop();
+                        connection.Sending = false;
 
                         return true;
                     }

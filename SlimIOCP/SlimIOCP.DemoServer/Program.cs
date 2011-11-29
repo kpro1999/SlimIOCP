@@ -23,7 +23,7 @@ Suspendisse eu erat nec dui blandit placerat id eu sem. Ut porta orci vitae augu
 
         static void Main(string[] args)
         {
-            SlimIOCP.Log.Logger = new Action<string>(Console.WriteLine);
+            SlimCommon.Log.Default.Logger = new SlimCommon.ConsoleLogger();
 
             var server = new SlimIOCP.Mono.Server();
             server.Start(new IPEndPoint(IPAddress.Parse("192.168.0.10"), 14000));
@@ -33,11 +33,6 @@ Suspendisse eu erat nec dui blandit placerat id eu sem. Ut porta orci vitae augu
 
             while (true)
             {
-                if (server.ConnectedClients > 0)
-                {
-                    
-                }
-
                 while (server.TryPopMessage(out message))
                 {
                     switch (message.MessageType)

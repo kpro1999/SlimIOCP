@@ -38,6 +38,9 @@
     <AssemblyOriginatorKeyFile>SlimIOCP.Shared.snk</AssemblyOriginatorKeyFile>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="SlimCommon">
+      <HintPath>..\Externals\SlimCommon.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Xml.Linq" />
@@ -47,7 +50,8 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Connection.cs" />
-    <Compile Include="Log.cs" />
+    <Compile Include="ConnectionPool.cs" />
+    <Compile Include="ConnectionProducer.cs" />
     <Compile Include="MetaMessagePool.cs" />
     <Compile Include="Peer.cs" />
     <Compile Include="Buffer.cs" />

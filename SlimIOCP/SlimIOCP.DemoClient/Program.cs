@@ -15,7 +15,7 @@ namespace SlimIOCP.DemoClient
 
         static void Main(string[] args)
         {
-            SlimIOCP.Log.Logger = new Action<string>(Console.WriteLine);
+            SlimCommon.Log.Default.Logger = new SlimCommon.ConsoleLogger();
 
             var clients = new List<SlimIOCP.Mono.Client>();
             var started = false;

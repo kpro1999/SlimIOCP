@@ -108,7 +108,7 @@ namespace SlimIOCP
             }
             else
             {
-                Log.Info("Thread already running");
+                SlimCommon.Log.Default.Info("Thread already running");
             }
         }
 

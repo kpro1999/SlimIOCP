@@ -23,7 +23,6 @@ namespace SlimIOCP.Mono
         internal void Send(OutgoingMessage message)
         {
             var connection = message.MonoConnection;
-
             if (connection.Sending)
             {
                 //TODO: Error
@@ -54,7 +53,6 @@ namespace SlimIOCP.Mono
             }
             catch (SocketException)
             {
-                Log.Info("SocketExn");
                 Disconnect(connection);
 
                 if (!OutgoingMessagePool.TryPush(message))
@@ -64,7 +62,6 @@ namespace SlimIOCP.Mono
             }
             catch (NullReferenceException)
             {
-                Log.Info("NullReferenceException");
                 // This means that socket was null (connection was already closed)
                 // We can just ignore this
             }
@@ -72,8 +69,6 @@ namespace SlimIOCP.Mono
 
         internal void Receive(Connection connection)
         {
-            Log.Info("Receive - Start");
-
 #if DEBUG
             if (connection == null)
             {
@@ -100,13 +95,11 @@ namespace SlimIOCP.Mono
                 }
                 catch (SocketException)
                 {
-                    Log.Info("SocketExn");
                     Disconnect(connection);
                     IncomingBufferPool.TryPush(buffer);
                 }
                 catch (NullReferenceException)
                 {
-                    Log.Info("NullReferenceException");
                     // This means that socket was null (connection was already closed)
                     // We can just ignore this
                 }
@@ -155,7 +148,6 @@ namespace SlimIOCP.Mono
             }
             catch (SocketException)
             {
-                Log.Info("SocketExn");
                 Disconnect(connection);
 
                 if (!OutgoingMessagePool.TryPush(message))
@@ -200,7 +192,6 @@ namespace SlimIOCP.Mono
             }
             catch (SocketException)
             {
-                Log.Info("SocketExn");
                 Disconnect(connection);
 
                 if (!IncomingBufferPool.TryPush(buffer))
@@ -212,7 +203,7 @@ namespace SlimIOCP.Mono
 
         public void Disconnect(Connection connection)
         {
-            Log.Info("[SlimIOCP] Disconnected " + connection.RemoteEndPoint);
+            SlimCommon.Log.Default.Info("[SlimIOCP] Disconnected " + connection.RemoteEndPoint);
 
             lock (connection)
             {

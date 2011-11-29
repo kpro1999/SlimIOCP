@@ -30,7 +30,7 @@ namespace SlimIOCP.Mono
                 }
             }
 
-            Log.Info("Connections.Count: " + Connections.Count);
+            SlimCommon.Log.Default.Info("Connections.Count: " + Connections.Count);
 
             if (Connections.Count == 0)
             {

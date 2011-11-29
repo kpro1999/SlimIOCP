@@ -48,9 +48,9 @@ namespace SlimIOCP
 
         internal void Start(object threadState)
         {
-            Log.Info("[SlimIOCP] Start " + Thread.CurrentThread.Name);
+            SlimCommon.Log.Default.Info("[SlimIOCP] Start " + Thread.CurrentThread.Name);
             ReceiveLoop();
-            Log.Info("[SlimIOCP] Shutdown " + Thread.CurrentThread.Name);
+            SlimCommon.Log.Default.Info("[SlimIOCP] Shutdown " + Thread.CurrentThread.Name);
         }
 
         internal void ReceiveLoop()
