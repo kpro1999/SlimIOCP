@@ -100,10 +100,7 @@ namespace SlimIOCP
                                 message.Connection = buffer.Connection;
 
                                 // Queue into received messages
-                                lock (peer.ReceivedMessages)
-                                {
-                                    peer.ReceivedMessages.Enqueue(message);
-                                }
+                                peer.PushMessage(message);
 
                                 // Signal wait event
                                 peer.ReceivedMessageEvent.Set();

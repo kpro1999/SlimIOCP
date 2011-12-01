@@ -38,14 +38,15 @@ namespace SlimIOCP
 
         internal readonly Receiver<TIncomingBuffer, TIncomingMessage, TOutgoingMessage, TConnection> Receiver;
         internal readonly ManualResetEvent ReceiverEvent;
-        public readonly ManualResetEvent ReceivedMessageEvent;
+
+        public readonly AutoResetEvent ReceivedMessageEvent;
 
         public IPEndPoint EndPoint { get; private set; }
 
         public Peer()
         {
             ReceiverEvent = new ManualResetEvent(true);
-            ReceivedMessageEvent = new ManualResetEvent(false);
+            ReceivedMessageEvent = new AutoResetEvent(false);
             ReceivedMessages = new Queue<TIncomingMessage>();
             Receiver = new Receiver<TIncomingBuffer, TIncomingMessage, TOutgoingMessage, TConnection>(this);
             ReceiverThread = new Thread(Receiver.Start);
@@ -95,6 +96,8 @@ namespace SlimIOCP
             {
                 ReceivedMessages.Enqueue(message);
             }
+
+            ReceivedMessageEvent.Set();
         }
 
         internal void StartReceiver()
