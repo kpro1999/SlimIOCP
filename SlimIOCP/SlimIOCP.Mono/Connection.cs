@@ -27,8 +27,9 @@ namespace SlimIOCP.Mono
             return false;
         }
 
-        internal virtual void Reset()
+        internal override void Reset()
         {
+            base.Reset();
             Socket = null;
             Sending = false;
             Message = null;

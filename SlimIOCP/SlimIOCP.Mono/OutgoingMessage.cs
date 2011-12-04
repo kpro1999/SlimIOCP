@@ -44,6 +44,9 @@ namespace SlimIOCP.Mono
 
             lock (MonoConnection)
             {
+                if (!MonoConnection.Connected)
+                    return false;
+
                 if (MonoConnection.Sending)
                 {
                     MonoConnection.SendQueue.Enqueue(this);

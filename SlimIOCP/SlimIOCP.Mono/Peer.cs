@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Net.Sockets;
+using SlimCommon;
 
 namespace SlimIOCP.Mono
 {
@@ -226,6 +227,8 @@ namespace SlimIOCP.Mono
                 throw new Exception();
             }
 #endif
+
+            Log.Default.Info("[SlimIOCP] Recycling connection");
 
             if (!ConnectionPool.TryPush(connection))
             {

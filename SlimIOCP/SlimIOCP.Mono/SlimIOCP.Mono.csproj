@@ -76,7 +76,10 @@
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>
     <PostBuildEvent>xcopy "$(TargetPath)" "C:\SlimNet\SlimNet\Externals\" /Y
-xcopy "$(TargetPath)" "C:\SlimNet\CastleBattle\CastleBattle.Unity\Assets\SlimNet\Assemblies\" /Y</PostBuildEvent>
+xcopy "$(TargetPath)" "C:\SlimNet\CastleBattle\CastleBattle.Unity\Assets\SlimNet\Assemblies\" /Y
+xcopy "$(TargetDir)SlimIOCP.Mono.pdb" "C:\SlimNet\CastleBattle\CastleBattle.Unity\Assets\SlimNet\Assemblies\" /Y
+cd "C:\SlimNet\CastleBattle\CastleBattle.Unity\Assets\SlimNet\Assemblies\"
+"C:\Program Files (x86)\Unity\Editor\Data\Mono\lib\mono\2.0\pdb2mdb.exe" "$(TargetFileName)"</PostBuildEvent>
   </PropertyGroup>
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
